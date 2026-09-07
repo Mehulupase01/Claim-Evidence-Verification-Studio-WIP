@@ -51,13 +51,25 @@
 
 ## Dependencies
 
-No implementation dependency was added in Phase 0. Every dependency introduced in later phases is recorded here with its purpose.
+Phase 0 added no implementation dependency. Phase 1 introduced the following pinned packages:
+
+| Dependency | Why it is here |
+| --- | --- |
+| FastAPI and Pydantic | Typed HTTP routes and strict request/response contracts. |
+| pydantic-settings | One environment-backed settings model with secret-aware values. |
+| Uvicorn | The small ASGI server used locally and in the container. |
+| python-multipart | Bounded file uploads in Phase 2. |
+| boto3 | Cloudflare R2's supported S3-compatible client path in Phase 2. |
+| HTTPX | A bounded direct Gemini HTTP call in Phase 4 and in-process API tests. |
+| pypdf | Text-based PDF extraction in Phase 3. |
+| pytest and pytest-asyncio | Deterministic offline verification. |
 
 ## AI Assistance Log
 
 | Phase | Assistance | Accepted or changed | Why |
 | --- | --- | --- | --- |
 | 0 | Codex reconciled the Studio brief, master plan, and empty repository into a phase plan. | Accepted the prescribed right-sized architecture; current provider availability was checked against official documentation. | Prevents scope drift and avoids selecting a discontinued or paid-only model. |
+| 1 | Codex created the typed application shell, settings, request context, and schemas. | Kept the settings lazy so missing external credentials do not take down the health endpoint. | A reviewer can start and diagnose the service before configuring optional request paths. |
 
 ## Bugs and Corrections
 

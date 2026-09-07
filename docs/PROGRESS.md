@@ -3,7 +3,7 @@
 | Phase | State | Evidence |
 | --- | --- | --- |
 | 0 - Brief and decision log | Complete | Scope, architecture, requirement ledger, placeholder environment, ignore rules, and secret scans passed. |
-| 1 - FastAPI foundation | Pending | - |
+| 1 - FastAPI foundation | Complete | Four tests pass; Uvicorn booted locally and `/health` returned `200 {"status":"ok"}` with a propagated request ID. |
 | 2 - R2 and document upload | Pending | - |
 | 3 - Extraction and retrieval | Pending | - |
 | 4 - Structured LLM verification | Pending | - |

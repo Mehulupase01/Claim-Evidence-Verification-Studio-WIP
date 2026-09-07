@@ -10,6 +10,7 @@ This ledger distinguishes deterministic automated checks from credential-depende
 | S4 | No credentials in Docker image metadata/layers | Pending | - |
 | R1 | Fresh-clone documented start | Pending | - |
 | R2 | No-cache image build | Pending | - |
+| H1 | Local application boot and health | Pass | Uvicorn started on port 8010; `/health` returned HTTP 200 and the typed JSON body. |
 | I1 | Real R2 round trip | Blocked pending user-owned R2 credentials | Never simulated as real. |
 | I2 | Real Gemini structured-output smoke test | Blocked pending user-owned Gemini API key | Never simulated as real. |
 | I3 | Persisted review round trip | Pending | - |

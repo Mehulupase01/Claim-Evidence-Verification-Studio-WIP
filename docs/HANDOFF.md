@@ -2,8 +2,8 @@
 
 ## Current state
 
-The source briefs have been reviewed in full. The repository began as an empty `main` branch. Phase 0 established the scope, architecture, requirements ledger, and secret-safe scaffold. Repository, index, and history checks found no credential value; the only key-shaped entries are documented placeholder variable names.
+The source briefs have been reviewed in full. Phases 0 and 1 are complete: the repository has a decision log, secret-safe configuration contract, typed FastAPI shell, request IDs, safe JSON logging, domain schemas, and passing foundation tests. Uvicorn was started directly and the health and root routes both returned HTTP 200.
 
 ## Next gate
 
-Implement the bootable FastAPI foundation and its smoke tests, then proceed to storage, extraction, retrieval, and verification in gated phases.
+Implement the R2 storage boundary and bounded document-upload route, with an in-memory fake for offline route tests and a credential-gated real R2 round-trip test.
