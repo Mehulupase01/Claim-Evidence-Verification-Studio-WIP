@@ -54,6 +54,16 @@ class DocumentUploadResponse(StrictModel):
     created_at: datetime = Field(default_factory=utc_now)
 
 
+class DocumentStoredResponse(StrictModel):
+    """Phase-2 response before extraction metadata is attached in Phase 3."""
+
+    document_id: str = Field(pattern=r"^doc_[0-9a-f]{32}$")
+    filename: str = Field(min_length=1, max_length=255)
+    content_type: str
+    size_bytes: int = Field(gt=0)
+    stored_at: datetime = Field(default_factory=utc_now)
+
+
 class CreateReviewRequest(StrictModel):
     document_id: str = Field(pattern=r"^doc_[0-9a-f]{32}$")
     claim: str = Field(min_length=3, max_length=2000)

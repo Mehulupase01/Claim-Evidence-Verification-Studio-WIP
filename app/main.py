@@ -7,7 +7,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 
+from app.api.documents import router as documents_router
 from app.config import get_settings
+from app.errors import AppError
 from app.logging import configure_logging, request_id_context
 from app.models import HealthResponse
 
@@ -32,6 +34,30 @@ def create_app() -> FastAPI:
         description="Grounded, human-reviewable claim verification.",
         lifespan=lifespan,
     )
+    application.include_router(documents_router)
+
+    @application.exception_handler(AppError)
+    async def app_error_handler(_: Request, exc: AppError):
+        from fastapi.responses import JSONResponse
+
+        logger.warning(
+            "request failed safely",
+            extra={
+                "operation": "error_mapping",
+                "status_code": exc.status_code,
+                "error_type": exc.code,
+            },
+        )
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "error": {
+                    "code": exc.code,
+                    "message": exc.public_message,
+                    "request_id": request_id_context.get(),
+                }
+            },
+        )
 
     @application.middleware("http")
     async def request_context(request: Request, call_next):

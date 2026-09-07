@@ -70,10 +70,11 @@ Phase 0 added no implementation dependency. Phase 1 introduced the following pin
 | --- | --- | --- | --- |
 | 0 | Codex reconciled the Studio brief, master plan, and empty repository into a phase plan. | Accepted the prescribed right-sized architecture; current provider availability was checked against official documentation. | Prevents scope drift and avoids selecting a discontinued or paid-only model. |
 | 1 | Codex created the typed application shell, settings, request context, and schemas. | Kept the settings lazy so missing external credentials do not take down the health endpoint. | A reviewer can start and diagnose the service before configuring optional request paths. |
+| 2 | Codex implemented an R2 adapter and the first document-upload route. | Kept the adapter small, made boto3 calls off the event loop, and put an in-memory test double behind the same contract. | The production path is a real S3-compatible API while routine tests remain fast and offline. |
 
 ## Bugs and Corrections
 
-No implementation defect has been encountered yet. This section will record a real correction; it will not be pre-filled with a fictional AI mistake.
+During Phase 2, Codex first wrapped the R2 constructor in `lru_cache` with a `Settings` object as the cache key. Pydantic settings objects are not hashable, so that would have failed on the first real dependency resolution. The cache was removed before the route tests; creating the small adapter per request keeps the code correct and avoids retaining credential-bearing settings in a cache key.
 
 ## Cuts
 
