@@ -1,12 +1,14 @@
 from pathlib import PurePosixPath
+import json
 import uuid
 
 from fastapi import APIRouter, Depends, File, UploadFile, status
 
 from app.config import Settings, get_settings
-from app.dependencies import get_storage_service
+from app.dependencies import get_extraction_service, get_storage_service
 from app.errors import InvalidUploadError, UnsupportedFileError, UploadTooLargeError
-from app.models import DocumentStoredResponse
+from app.models import DocumentUploadResponse
+from app.services.extraction import ExtractionService
 from app.services.storage import StorageService
 
 
@@ -51,27 +53,44 @@ async def read_bounded_upload(file: UploadFile, maximum_bytes: int) -> bytes:
     return data
 
 
-@router.post("", response_model=DocumentStoredResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=DocumentUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_document(
     file: UploadFile = File(...),
     settings: Settings = Depends(get_settings),
     storage: StorageService = Depends(get_storage_service),
-) -> DocumentStoredResponse:
+    extractor: ExtractionService = Depends(get_extraction_service),
+) -> DocumentUploadResponse:
     filename, extension = normalize_filename(file.filename)
     content_type = validate_content_type(extension, file.content_type)
     data = await read_bounded_upload(file, settings.max_upload_bytes)
 
     document_id = f"doc_{uuid.uuid4().hex}"
     object_key = f"documents/{document_id}/original{extension}"
+    extracted = await extractor.extract(
+        document_id=document_id,
+        filename=filename,
+        content_type=content_type,
+        data=data,
+    )
     await storage.put_bytes(
         object_key,
         data,
         content_type=content_type,
         metadata={"document-id": document_id},
     )
-    return DocumentStoredResponse(
+    await storage.put_bytes(
+        f"documents/{document_id}/extracted.json",
+        json.dumps(extracted.model_dump(mode="json"), separators=(",", ":")).encode(
+            "utf-8"
+        ),
+        content_type="application/json",
+        metadata={"document-id": document_id},
+    )
+    return DocumentUploadResponse(
         document_id=document_id,
         filename=filename,
         content_type=content_type,
-        size_bytes=len(data),
+        page_count=extracted.page_count,
+        chunk_count=len(extracted.chunks),
+        created_at=extracted.created_at,
     )

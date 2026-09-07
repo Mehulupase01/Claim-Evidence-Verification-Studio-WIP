@@ -80,7 +80,21 @@ async def test_valid_text_upload_is_stored_under_namespaced_key() -> None:
     assert body["document_id"].startswith("doc_")
     expected_key = f"documents/{body['document_id']}/original.txt"
     assert storage.objects[expected_key] == payload
-    assert body["size_bytes"] == len(payload)
+    assert body["page_count"] == 1
+    assert body["chunk_count"] == 1
+    sidecar_key = f"documents/{body['document_id']}/extracted.json"
+    assert sidecar_key in storage.objects
+
+
+@pytest.mark.asyncio
+async def test_empty_text_document_returns_explicit_processing_error() -> None:
+    storage = InMemoryStorage()
+
+    response = await post_file(storage, "empty.txt", b" \n\t ", "text/plain")
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "extraction_failed"
+    assert storage.objects == {}
 
 
 class FailingStorage(InMemoryStorage):
@@ -91,7 +105,10 @@ class FailingStorage(InMemoryStorage):
 @pytest.mark.asyncio
 async def test_storage_failure_is_safe_and_contains_request_id() -> None:
     response = await post_file(
-        FailingStorage(), "report.txt", b"safe content", "text/plain"
+        FailingStorage(),
+        "report.txt",
+        b"This content is long enough to pass text extraction safely.",
+        "text/plain",
     )
 
     assert response.status_code == 502

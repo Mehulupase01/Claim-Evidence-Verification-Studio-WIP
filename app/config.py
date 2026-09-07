@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     retrieval_top_k: int = Field(default=5, ge=1, le=12)
     chunk_size_chars: int = Field(default=1200, ge=300, le=4000)
     chunk_overlap_chars: int = Field(default=200, ge=0, le=1000)
+    max_document_pages: int = Field(default=200, ge=1, le=1000)
+    max_extracted_chars: int = Field(default=500_000, ge=10_000, le=5_000_000)
 
     @model_validator(mode="after")
     def validate_chunk_window(self) -> "Settings":

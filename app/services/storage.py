@@ -1,5 +1,7 @@
 import asyncio
 from collections.abc import Mapping
+import logging
+import time
 from typing import Protocol
 
 import boto3
@@ -8,6 +10,9 @@ from botocore.exceptions import BotoCoreError, ClientError
 
 from app.config import Settings
 from app.errors import ObjectNotFoundError, StorageConfigurationError, StorageError
+
+
+logger = logging.getLogger("claim_verifier.storage")
 
 
 class StorageService(Protocol):
@@ -93,7 +98,7 @@ class R2Storage:
                 Metadata=dict(metadata or {}),
             )
 
-        await self._call(put)
+        await self._call(put, operation_name="put_object")
 
     async def get_bytes(self, key: str) -> bytes:
         def get() -> bytes:
@@ -107,7 +112,9 @@ class R2Storage:
             finally:
                 body.close()
 
-        return await self._call(get, missing_is_not_found=True)
+        return await self._call(
+            get, operation_name="get_object", missing_is_not_found=True
+        )
 
     async def exists(self, key: str) -> bool:
         def head() -> bool:
@@ -115,7 +122,9 @@ class R2Storage:
             return True
 
         try:
-            return await self._call(head, missing_is_not_found=True)
+            return await self._call(
+                head, operation_name="head_object", missing_is_not_found=True
+            )
         except ObjectNotFoundError:
             return False
 
@@ -123,12 +132,36 @@ class R2Storage:
         def remove() -> None:
             self._client().delete_object(Bucket=self._settings.r2_bucket, Key=key)
 
-        await self._call(remove)
+        await self._call(remove, operation_name="delete_object")
 
-    async def _call(self, operation, *, missing_is_not_found: bool = False):
+    async def _call(
+        self,
+        operation,
+        *,
+        operation_name: str,
+        missing_is_not_found: bool = False,
+    ):
+        started = time.perf_counter()
         try:
-            return await asyncio.to_thread(operation)
+            result = await asyncio.to_thread(operation)
+            logger.info(
+                "storage operation completed",
+                extra={
+                    "operation": operation_name,
+                    "dependency": "cloudflare_r2",
+                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                },
+            )
+            return result
         except StorageConfigurationError:
+            logger.warning(
+                "storage configuration is incomplete",
+                extra={
+                    "operation": operation_name,
+                    "dependency": "cloudflare_r2",
+                    "error_type": "configuration",
+                },
+            )
             raise
         except ClientError as exc:
             error_code = str(exc.response.get("Error", {}).get("Code", ""))
@@ -138,8 +171,24 @@ class R2Storage:
                 "NotFound",
             }:
                 raise ObjectNotFoundError() from None
+            logger.warning(
+                "storage operation failed",
+                extra={
+                    "operation": operation_name,
+                    "dependency": "cloudflare_r2",
+                    "error_type": "client_error",
+                },
+            )
             raise StorageError() from None
         except (BotoCoreError, OSError):
+            logger.warning(
+                "storage operation failed",
+                extra={
+                    "operation": operation_name,
+                    "dependency": "cloudflare_r2",
+                    "error_type": "transport_error",
+                },
+            )
             raise StorageError() from None
 
 

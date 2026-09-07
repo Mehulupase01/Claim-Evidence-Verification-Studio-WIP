@@ -71,6 +71,7 @@ Phase 0 added no implementation dependency. Phase 1 introduced the following pin
 | 0 | Codex reconciled the Studio brief, master plan, and empty repository into a phase plan. | Accepted the prescribed right-sized architecture; current provider availability was checked against official documentation. | Prevents scope drift and avoids selecting a discontinued or paid-only model. |
 | 1 | Codex created the typed application shell, settings, request context, and schemas. | Kept the settings lazy so missing external credentials do not take down the health endpoint. | A reviewer can start and diagnose the service before configuring optional request paths. |
 | 2 | Codex implemented an R2 adapter and the first document-upload route. | Kept the adapter small, made boto3 calls off the event loop, and put an in-memory test double behind the same contract. | The production path is a real S3-compatible API while routine tests remain fast and offline. |
+| 3 | Codex added bounded text/PDF extraction, stable chunking, and BM25 retrieval. | Kept offsets tied to normalized page text and stored the full extracted artifact beside the original. | Reviews can be repeated without reparsing the upload, and evidence always retains its source page. |
 
 ## Bugs and Corrections
 
