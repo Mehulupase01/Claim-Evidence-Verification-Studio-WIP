@@ -23,6 +23,7 @@ class JsonFormatter(logging.Formatter):
         "document_id",
         "review_id",
         "error_type",
+        "upstream_status",
     )
 
     def format(self, record: logging.LogRecord) -> str:

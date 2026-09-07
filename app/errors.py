@@ -58,6 +58,12 @@ class VerifierError(AppError):
     public_message = "The verification service returned an invalid response."
 
 
+class VerifierConfigurationError(AppError):
+    status_code = 503
+    code = "verifier_not_configured"
+    public_message = "The verification service is not configured."
+
+
 class VerifierTimeoutError(AppError):
     status_code = 504
     code = "verifier_timeout"

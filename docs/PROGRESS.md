@@ -6,7 +6,7 @@
 | 1 - FastAPI foundation | Complete | Four tests pass; Uvicorn booted locally and `/health` returned `200 {"status":"ok"}` with a propagated request ID. |
 | 2 - R2 and document upload | Implemented; external gate pending | Bounded upload route and S3-compatible adapter pass offline tests. The real R2 round trip is ready but cannot run without user-owned credentials. |
 | 3 - Extraction and retrieval | Complete | Text and real text-PDF fixtures pass extraction tests; stable chunk IDs, page metadata, BM25 ranking, empty-document rejection, and extracted sidecars are verified. |
-| 4 - Structured LLM verification | Pending | - |
+| 4 - Structured LLM verification | Implemented; external gate pending | Gemini adapter uses JSON Schema, header-based credentials, strict Pydantic validation, a bounded timeout, and evidence-ID grounding. Real smoke test awaits a user-owned API key. |
 | 5 - Review persistence | Pending | - |
 | 6 - Reviewer UI | Pending | - |
 | 7 - Docker reproducibility | Pending | - |

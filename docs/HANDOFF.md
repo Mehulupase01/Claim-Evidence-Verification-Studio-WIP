@@ -2,8 +2,8 @@
 
 ## Current state
 
-The source briefs have been reviewed in full. Phases 0, 1, and 3 are complete. Phase 2's implementation is complete, with its real-cloud gate still waiting for user-owned R2 credentials. Uploads are bounded, extracted in memory, split into page-aware chunks with stable IDs, ranked by a local BM25 service, and saved as an R2 sidecar. The offline suite covers both text and genuine text-bearing PDF fixtures.
+The source briefs have been reviewed in full. Phases 0, 1, and 3 are complete. The production code for Phases 2 and 4 is complete, with both external smoke checks waiting for user-owned credentials. The Gemini adapter sends only retrieved passages, requests JSON-schema output, validates the typed response again locally, and rejects invented or duplicate evidence IDs. No provider response body or API key is logged.
 
 ## Next gate
 
-Add the Gemini verifier with JSON-schema output, bounded timeout behavior, strict response validation, and rejection of any evidence ID outside the retrieved candidate set.
+Wire the full review route: load the extracted R2 sidecar, rank candidates, obtain and ground the decision, persist only a valid final review, and support retrieval by review ID.
