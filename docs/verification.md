@@ -13,7 +13,7 @@ This ledger distinguishes deterministic automated checks from credential-depende
 | H1 | Local application boot and health | Pass | Uvicorn started on port 8010; `/health` returned HTTP 200 and the typed JSON body. |
 | I1 | Real R2 round trip | Blocked pending user-owned R2 credentials | Never simulated as real. |
 | I2 | Real Gemini structured-output smoke test | Blocked pending user-owned Gemini API key | Never simulated as real. |
-| I3 | Persisted review round trip | Pending | - |
+| I3 | Persisted review round trip | Pass offline | POST then GET returns identical typed JSON for all verdict classes using the storage boundary's in-memory test double. |
 | A1-A4 | Three semantics and evidence grounding | Pass offline | Mock-transport tests cover all verdicts, unknown IDs, duplicate/empty semantic constraints, and strict JSON. Real Gemini semantics remain I2. |
 | F1-F2 | Unsupported and oversized uploads | Pass | Offline API tests return 415 and 413 before storage. |
 | F3 | No extractable text | Pass | Extraction and API tests return a clear 422 with the OCR limitation. |

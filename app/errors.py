@@ -34,6 +34,16 @@ class ObjectNotFoundError(AppError):
     public_message = "The requested item was not found."
 
 
+class DocumentNotFoundError(ObjectNotFoundError):
+    code = "document_not_found"
+    public_message = "That document was not found. Upload it again and retry."
+
+
+class ReviewNotFoundError(ObjectNotFoundError):
+    code = "review_not_found"
+    public_message = "That saved review was not found."
+
+
 class StorageConfigurationError(AppError):
     status_code = 503
     code = "storage_not_configured"
@@ -44,6 +54,11 @@ class StorageError(AppError):
     status_code = 502
     code = "storage_unavailable"
     public_message = "Document storage is temporarily unavailable."
+
+
+class StoredArtifactError(StorageError):
+    code = "invalid_stored_artifact"
+    public_message = "A stored review artifact could not be read safely."
 
 
 class ExtractionError(AppError):

@@ -73,6 +73,7 @@ Phase 0 added no implementation dependency. Phase 1 introduced the following pin
 | 2 | Codex implemented an R2 adapter and the first document-upload route. | Kept the adapter small, made boto3 calls off the event loop, and put an in-memory test double behind the same contract. | The production path is a real S3-compatible API while routine tests remain fast and offline. |
 | 3 | Codex added bounded text/PDF extraction, stable chunking, and BM25 retrieval. | Kept offsets tied to normalized page text and stored the full extracted artifact beside the original. | Reviews can be repeated without reparsing the upload, and evidence always retains its source page. |
 | 4 | Codex added the Gemini structured-output adapter and adversarial response tests. | Used the API key in a header, bounded each request, and retained application-side schema and evidence-ID checks. | Provider-side JSON structure helps, but only the application can enforce that selected citations came from its candidate set. |
+| 5 | Codex wired document artifacts, retrieval, verification, evidence resolution, and review persistence into one readable route. | Persist only after every schema and grounding check passes; failed attempts remain in request-scoped logs only. | A saved review is always a valid human-review artifact, never a partial upstream response. |
 
 ## Bugs and Corrections
 

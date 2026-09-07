@@ -2,8 +2,8 @@
 
 ## Current state
 
-The source briefs have been reviewed in full. Phases 0, 1, and 3 are complete. The production code for Phases 2 and 4 is complete, with both external smoke checks waiting for user-owned credentials. The Gemini adapter sends only retrieved passages, requests JSON-schema output, validates the typed response again locally, and rejects invented or duplicate evidence IDs. No provider response body or API key is logged.
+The full backend vertical slice is implemented. Offline API tests upload a document, write its original and extracted artifacts, retrieve candidates, run each of the three verdicts through an injected verifier, persist a grounded review, and retrieve identical JSON. Missing objects, corrupt artifacts, timeouts, malformed verifier results, and invented evidence IDs fail safely. Real R2 and Gemini checks remain explicitly pending because this machine has no user-owned credentials.
 
 ## Next gate
 
-Wire the full review route: load the extracted R2 sidecar, rank candidates, obtain and ground the decision, persist only a valid final review, and support retrieval by review ID.
+Build the single-page reviewer workspace around the verified API, including loading, success, retrieval, and actionable error states at desktop and mobile widths.

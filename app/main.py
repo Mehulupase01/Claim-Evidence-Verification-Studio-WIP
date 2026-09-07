@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 
 from app.api.documents import router as documents_router
+from app.api.reviews import router as reviews_router
 from app.config import get_settings
 from app.errors import AppError
 from app.logging import configure_logging, request_id_context
@@ -35,6 +36,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
     application.include_router(documents_router)
+    application.include_router(reviews_router)
 
     @application.exception_handler(AppError)
     async def app_error_handler(_: Request, exc: AppError):
