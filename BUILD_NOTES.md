@@ -75,10 +75,13 @@ Phase 0 added no implementation dependency. Phase 1 introduced the following pin
 | 4 | Codex added the Gemini structured-output adapter and adversarial response tests. | Used the API key in a header, bounded each request, and retained application-side schema and evidence-ID checks. | Provider-side JSON structure helps, but only the application can enforce that selected citations came from its candidate set. |
 | 5 | Codex wired document artifacts, retrieval, verification, evidence resolution, and review persistence into one readable route. | Persist only after every schema and grounding check passes; failed attempts remain in request-scoped logs only. | A saved review is always a valid human-review artifact, never a partial upstream response. |
 | 6 | Codex built the reviewer workspace and its loading, error, result, and saved-review states. | Used plain browser APIs and text-only DOM updates for source and model content; added one feature-detected WebMCP action over the same visible flow. | There is no frontend build chain, and untrusted evidence never enters the page through HTML injection. |
+| 7 | Codex packaged the app as one non-root, health-checked container. | Used an exact Python patch tag and a fully resolved lock export; runtime secrets are supplied only when the container starts. | The image stays small and auditable, while Compose remains the single start command. |
 
 ## Bugs and Corrections
 
 During Phase 2, Codex first wrapped the R2 constructor in `lru_cache` with a `Settings` object as the cache key. Pydantic settings objects are not hashable, so that would have failed on the first real dependency resolution. The cache was removed before the route tests; creating the small adapter per request keeps the code correct and avoids retaining credential-bearing settings in a cache key.
+
+During Phase 7, Docker Desktop was installed but its Linux engine and Windows service were stopped. The service could not be started from this non-elevated session, and no Podman or alternate container builder was installed. Compose configuration validation and container-contract tests pass; the no-cache build remains a release gate to run once Docker Desktop is started by the user.
 
 ## Cuts
 

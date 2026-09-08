@@ -9,7 +9,7 @@ This ledger distinguishes deterministic automated checks from credential-depende
 | S3 | No credentials in tracked history | Pass | Git history pattern scan returned only license prose, with no credential value. |
 | S4 | No credentials in Docker image metadata/layers | Pending | - |
 | R1 | Fresh-clone documented start | Pending | - |
-| R2 | No-cache image build | Pending | - |
+| R2 | No-cache image build | Blocked by local Docker engine | Docker client is installed; the Desktop Linux engine is stopped and its service cannot be started from this session. Compose config and 3 container-contract tests pass. |
 | H1 | Local application boot and health | Pass | Uvicorn started on port 8010; `/health` returned HTTP 200 and the typed JSON body. |
 | I1 | Real R2 round trip | Blocked pending user-owned R2 credentials | Never simulated as real. |
 | I2 | Real Gemini structured-output smoke test | Blocked pending user-owned Gemini API key | Never simulated as real. |

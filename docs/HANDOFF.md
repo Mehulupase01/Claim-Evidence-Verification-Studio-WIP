@@ -2,8 +2,8 @@
 
 ## Current state
 
-The full backend vertical slice and reviewer workspace are implemented. The interface supports a one-click sample, upload and claim entry, visible progress, safe errors with request references, evidence cards, and reload of a saved review. It renders all source and model content with `textContent` and runs under a restrictive Content Security Policy. Automated route and asset checks pass. The environment had no available browser surface for the preview handoff, and the feature-detected WebMCP action could not be exercised here.
+The backend, reviewer workspace, and container packaging are implemented. Compose resolves one health-checked app service; the Dockerfile uses an exact Python patch image, a fully resolved dependency lock, and a non-root account. Docker Desktop is installed but its engine service is stopped and cannot be started from this session, so the image build is not marked as verified. The local Uvicorn application remains healthy on port 8010.
 
 ## Next gate
 
-Containerize the one-service application with a pinned Python image, non-root runtime, healthcheck, runtime-only secrets, and one Docker Compose start command.
+Finish the deployment contract and free Cloudflare Tunnel path without changing application architecture. A public live URL still requires a running container/application and user-owned runtime credentials.
