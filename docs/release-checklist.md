@@ -13,6 +13,7 @@
 - [x] A fresh CI runner completes the no-cache image build, image audit, Compose start, and health check.
 - [x] A separate clean clone installs from the lockfile and passes tests and secret scanning.
 - [x] The temporary public workspace and `/health` route return HTTP 200 through Cloudflare.
+- [x] Desktop and 390 px Edge renders have no horizontal overflow; the sample and safe-error states are readable.
 - [x] README, design note, API guide, evaluation record, deployment guide, and handoff agree with the source.
 
 ## Owner-dependent release gates
@@ -23,7 +24,7 @@
 - [ ] Run a real upload -> review -> saved GET through the public URL.
 - [ ] Confirm supported, contradicted, and insufficient examples manually.
 - [ ] Confirm a bad key and bad R2 configuration return safe errors with clean logs.
-- [ ] Check the public page from a second browser/device and at a narrow viewport.
+- [ ] Check the public page from a second physical device during the review window.
 - [ ] Stop the Quick Tunnel and any free-tier resources when the review window ends.
 
 Do not describe the submission as fully externally verified until every owner-dependent item is checked.

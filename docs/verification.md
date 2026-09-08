@@ -28,5 +28,5 @@ This ledger distinguishes deterministic automated checks from credential-depende
 | Q4 | Negative-path log review | Pass | Timeout, malformed-output, and storage-failure logs contain operational labels/status only. |
 | D1-D2 | README exactness and design note completeness | Pass | Final handoff covers the live URL, single start command, complete environment table, architecture, API, failures, evaluation, AI use, cuts, production priorities, and open tradeoff. |
 | U1 | Reviewer workspace assets and security headers | Pass | Root, CSS, JavaScript, sample source, CSP, and untrusted-text rendering assertions pass. |
-| U2 | Desktop/mobile visual handoff | Not run | The available browser-control environment reported that no browser surface was available. |
+| U2 | Desktop/mobile visual handoff | Pass | Headless Edge renders at 1440 x 1000 and 390 x 844 show the sample and safe error states without horizontal overflow. The 390 px sample flow also passed through the public tunnel. |
 | U3 | WebMCP action contract | Implemented; not run | Registration is feature-detected; no supported browser/WebMCP context was available for execution. |

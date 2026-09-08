@@ -21,6 +21,8 @@
 
 * { box-sizing: border-box; }
 
+html, body { max-width: 100%; overflow-x: hidden; }
+
 body {
   margin: 0;
   min-width: 320px;
@@ -69,6 +71,7 @@ h1 { max-width: 740px; margin-bottom: 14px; font-family: Georgia, "Times New Rom
 .flow span { display: block; margin-bottom: 3px; color: var(--blue); font-size: 0.6875rem; }
 
 .workspace-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.7fr); gap: 20px; align-items: stretch; }
+.workspace-grid > *, .workspace-heading > *, .panel-heading > *, .file-copy { min-width: 0; }
 .review-panel, .context-panel, .result-region { border: 1px solid var(--line); background: var(--paper); box-shadow: var(--shadow); }
 .review-panel { padding: 30px; border-radius: 18px; }
 .panel-heading, .result-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
@@ -178,6 +181,7 @@ footer { display: flex; justify-content: space-between; gap: 20px; padding-top: 
   h1 { font-size: clamp(2.25rem, 13vw, 3.5rem); }
   .flow { width: 100%; }
   .flow li { min-width: 0; flex: 1; }
+  .workspace-grid { grid-template-columns: minmax(0, 1fr); }
   .review-panel, .context-panel, .result-region { padding: 22px; border-radius: 14px; }
   .file-drop { grid-template-columns: auto 1fr; }
   .file-action { display: none; }

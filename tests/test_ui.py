@@ -20,6 +20,7 @@ async def test_reviewer_workspace_and_assets_are_served() -> None:
     assert "Content-Security-Policy" in page.headers
     assert styles.status_code == 200
     assert "--navy" in styles.text
+    assert ".workspace-grid { grid-template-columns: minmax(0, 1fr); }" in styles.text
     assert script.status_code == 200
     assert "textContent = evidence.text" in script.text
     assert sample.status_code == 200

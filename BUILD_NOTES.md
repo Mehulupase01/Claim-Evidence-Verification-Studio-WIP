@@ -78,7 +78,7 @@ Phase 0 added no implementation dependency. Phase 1 introduced the following pin
 | 7 | Codex packaged the app as one non-root, health-checked container. | Used an exact Python patch tag and a fully resolved lock export; runtime secrets are supplied only when the container starts. | The image stays small and auditable, while Compose remains the single start command. |
 | 8 | Codex opened and verified a free Cloudflare Quick Tunnel to the local app. | Kept deployment outside the application and documented the URL's temporary nature and lack of SLA. | Public reachability is proven without coupling the code to a host or committing deployment credentials. |
 | 9 | Codex audited the failure matrix, added CI, a repository/history secret scanner, and a measured retrieval corpus. | Added rollback for split document writes and upgraded the PDF parser after a live advisory scan. | Release evidence now covers consistency and dependency risk, not only route behavior. |
-| 10 | Codex wrote the reviewer handoff and moved the clean image build into CI. | Kept verified facts separate from owner-dependent R2, Gemini, Docker, and browser gates. | The submission is useful now without overstating what this credential-free environment proved. |
+| 10 | Codex wrote the reviewer handoff, moved the clean image build into CI, and rendered the live UI at desktop and mobile widths. | Kept verified facts separate from owner-dependent R2/Gemini and unavailable WebMCP gates. | The submission is useful now without overstating what this credential-free environment proved. |
 
 ## Bugs and Corrections
 
@@ -87,6 +87,8 @@ During Phase 2, Codex first wrapped the R2 constructor in `lru_cache` with a `Se
 During Phase 7, Docker Desktop was installed but its Linux engine and Windows service were stopped. The service could not be started from this non-elevated session, and no Podman or alternate container builder was installed. That local limitation remains, but the Phase 10 GitHub runner completed the no-cache Compose build, image audit, container start, and health check successfully.
 
 During Phase 9, `pip-audit` found six published advisories against pypdf 6.14.2. The dependency was upgraded to 6.16.1 and the full extraction suite was rerun before the audit was allowed to pass. The first secret-scanner expression also matched ordinary variable names such as `TOKEN_PATTERN`; it was narrowed to uppercase credential assignment names, then rerun across source and history.
+
+During the Phase 10 pixel check, the first 390 px render showed that intrinsic grid sizing could push the workflow and review card beyond the viewport. Explicit zero-minimum grid tracks and child constraints removed the overflow. Fresh desktop and mobile Edge renders then loaded the sample, showed the expected safe missing-storage error, and reported no horizontal overflow; the same mobile check passed through the public tunnel.
 
 ## Cuts
 

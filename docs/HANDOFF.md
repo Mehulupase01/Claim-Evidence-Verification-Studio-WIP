@@ -6,4 +6,4 @@ Implementation, offline hardening, and the clean-room release pass are complete.
 
 ## Next gate
 
-Add the owner's R2 and Gemini values to a local `.env`, run the two opt-in integration tests, and exercise one real public upload-to-saved-review flow. Then check the desktop and narrow layouts in a supported browser and stop the Quick Tunnel when the review window ends.
+Add the owner's R2 and Gemini values to a local `.env`, run the two opt-in integration tests, and exercise one real public upload-to-saved-review flow. Check the public page from a second physical device, execute the feature-detected WebMCP action if a supporting browser is available, and stop the Quick Tunnel when the review window ends.
