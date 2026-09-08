@@ -12,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -28,13 +28,13 @@ jobs:
       - name: Validate container configuration
         run: docker compose config --quiet
       - name: Build a fresh container image
-        run: docker build --no-cache --tag claim-evidence-verifier:ci .
+        run: docker compose build --no-cache
       - name: Audit image metadata and layers
-        run: python scripts/audit_image.py claim-evidence-verifier:ci
+        run: python scripts/audit_image.py claim-evidence-verifier:local
       - name: Start the container
-        run: docker run --detach --name claim-verifier-ci --publish 8000:8000 claim-evidence-verifier:ci
+        run: docker compose up --detach --no-build
       - name: Wait for container health
         run: python scripts/wait_for_health.py http://127.0.0.1:8000/health
       - name: Stop the container
         if: always()
-        run: docker rm --force claim-verifier-ci || true
+        run: docker compose down --remove-orphans
