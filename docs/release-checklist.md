@@ -10,6 +10,8 @@
 - [x] Repository and Git history secret scan passes.
 - [x] Dependency audit reports no known vulnerabilities.
 - [x] Compose configuration resolves to one health-checked service.
+- [x] A fresh CI runner completes the no-cache image build, image audit, Compose start, and health check.
+- [x] A separate clean clone installs from the lockfile and passes tests and secret scanning.
 - [x] The temporary public workspace and `/health` route return HTTP 200 through Cloudflare.
 - [x] README, design note, API guide, evaluation record, deployment guide, and handoff agree with the source.
 
@@ -21,7 +23,6 @@
 - [ ] Run a real upload -> review -> saved GET through the public URL.
 - [ ] Confirm supported, contradicted, and insufficient examples manually.
 - [ ] Confirm a bad key and bad R2 configuration return safe errors with clean logs.
-- [ ] Verify the no-cache image build and image audit in the fresh CI run.
 - [ ] Check the public page from a second browser/device and at a narrow viewport.
 - [ ] Stop the Quick Tunnel and any free-tier resources when the review window ends.
 

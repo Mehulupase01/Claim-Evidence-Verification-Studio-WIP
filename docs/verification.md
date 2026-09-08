@@ -7,9 +7,9 @@ This ledger distinguishes deterministic automated checks from credential-depende
 | S1 | `.env` absent from the Git index | Pass | `git check-ignore -v .env`; no tracked `.env`. |
 | S2 | `.env.example` contains placeholders only | Pass | Manual and pattern scan; every credential field uses `replace_me` or an angle-bracket placeholder. |
 | S3 | No credentials in tracked history | Pass | Git history pattern scan returned only license prose, with no credential value. |
-| S4 | No credentials in Docker image metadata/layers | Pending | - |
-| R1 | Fresh-clone documented start | Pending | - |
-| R2 | No-cache image build | Blocked by local Docker engine | Docker client is installed; the Desktop Linux engine is stopped and its service cannot be started from this session. Compose config and 3 container-contract tests pass. |
+| S4 | No credentials in Docker image metadata/layers | Pass | The fresh CI image audit checked Docker configuration, environment, and full layer history. |
+| R1 | Fresh-clone documented start | Pass | A clean GitHub checkout built and started the Compose service; an independent Windows clone installed from `uv.lock`, ran tests, and resolved Compose without an `.env`. |
+| R2 | No-cache image build | Pass in CI | [GitHub Actions run 34173925390](https://github.com/Mehulupase01/Claim-Evidence-Verification-Studio-WIP/actions/runs/34173925390) built without cache, started through Compose, and passed `/health`. The local Docker Desktop engine remained unavailable. |
 | H1 | Local application boot and health | Pass | Uvicorn started on port 8010; `/health` returned HTTP 200 and the typed JSON body. |
 | I1 | Real R2 round trip | Blocked pending user-owned R2 credentials | Never simulated as real. |
 | I2 | Real Gemini structured-output smoke test | Blocked pending user-owned Gemini API key | Never simulated as real. |
@@ -26,7 +26,7 @@ This ledger distinguishes deterministic automated checks from credential-depende
 | Q2 | Retrieval regression corpus | Pass | 5/5 top-1 and top-3; median 0.1961 ms, p95 0.2181 ms over 1,000 runs. |
 | Q3 | Dependency vulnerability audit | Pass | `pip-audit -r requirements.lock` reported no known vulnerabilities after pypdf was upgraded to 6.16.1. |
 | Q4 | Negative-path log review | Pass | Timeout, malformed-output, and storage-failure logs contain operational labels/status only. |
-| D1-D2 | README exactness and design note completeness | Pending | - |
+| D1-D2 | README exactness and design note completeness | Pass | Final handoff covers the live URL, single start command, complete environment table, architecture, API, failures, evaluation, AI use, cuts, production priorities, and open tradeoff. |
 | U1 | Reviewer workspace assets and security headers | Pass | Root, CSS, JavaScript, sample source, CSP, and untrusted-text rendering assertions pass. |
 | U2 | Desktop/mobile visual handoff | Not run | The available browser-control environment reported that no browser surface was available. |
 | U3 | WebMCP action contract | Implemented; not run | Registration is feature-detected; no supported browser/WebMCP context was available for execution. |

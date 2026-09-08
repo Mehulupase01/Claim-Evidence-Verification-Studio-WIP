@@ -3,10 +3,10 @@
 ## Requirements
 
 - [ ] Wire at least two independent external services or APIs that actually communicate with the application.
-- [ ] Start reproducibly on a fresh machine using one documented command.
+- [x] Start reproducibly on a fresh machine using one documented command. A fresh GitHub runner built and started the Compose service, and an independent clone passed installation and tests.
 - [x] Provide a reviewer-reachable live URL or documented free tunnel path.
 - [x] Keep the AI-assisted implementation fully understood and explainable.
-- [ ] Keep credentials out of the repository, Git history, image layers, and logs. Repository, history, and logs pass; the fresh CI image audit is pending.
+- [x] Keep credentials out of the repository, Git history, image layers, and logs. Repository/history scanning and the clean CI image-layer audit pass.
 - [x] Use free tiers and document the cost posture.
 - [x] Provide exact README run steps, every environment variable, and the live URL status.
 - [x] Commit a placeholder-only `.env.example` and ignore `.env`.
@@ -84,7 +84,7 @@ Phase 0 added no implementation dependency. Phase 1 introduced the following pin
 
 During Phase 2, Codex first wrapped the R2 constructor in `lru_cache` with a `Settings` object as the cache key. Pydantic settings objects are not hashable, so that would have failed on the first real dependency resolution. The cache was removed before the route tests; creating the small adapter per request keeps the code correct and avoids retaining credential-bearing settings in a cache key.
 
-During Phase 7, Docker Desktop was installed but its Linux engine and Windows service were stopped. The service could not be started from this non-elevated session, and no Podman or alternate container builder was installed. Compose configuration validation and container-contract tests pass; the no-cache build remains a release gate to run once Docker Desktop is started by the user.
+During Phase 7, Docker Desktop was installed but its Linux engine and Windows service were stopped. The service could not be started from this non-elevated session, and no Podman or alternate container builder was installed. That local limitation remains, but the Phase 10 GitHub runner completed the no-cache Compose build, image audit, container start, and health check successfully.
 
 During Phase 9, `pip-audit` found six published advisories against pypdf 6.14.2. The dependency was upgraded to 6.16.1 and the full extraction suite was rerun before the audit was allowed to pass. The first secret-scanner expression also matched ordinary variable names such as `TOKEN_PATTERN`; it was narrowed to uppercase credential assignment names, then rerun across source and history.
 
