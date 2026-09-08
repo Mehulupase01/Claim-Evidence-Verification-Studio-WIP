@@ -76,12 +76,11 @@ class GeminiVerifier:
     async def verify(
         self, claim: str, evidence: list[RankedChunk]
     ) -> LLMDecision:
-        api_key = (
-            self._settings.gemini_api_key.get_secret_value()
-            if self._settings.gemini_api_key
-            else ""
-        )
-        if not api_key or api_key == "replace_me":
+        if (
+            not self._settings.gemini_api_key
+            or not self._settings.gemini_api_key.get_secret_value()
+            or self._settings.gemini_api_key.get_secret_value() == "replace_me"
+        ):
             raise VerifierConfigurationError()
         if not MODEL_PATTERN.fullmatch(self._settings.gemini_model):
             raise VerifierConfigurationError("The configured Gemini model name is invalid.")
@@ -121,12 +120,12 @@ class GeminiVerifier:
             },
         }
 
-        response = await self._request(payload, api_key)
+        response = await self._request(payload)
         decision = self._parse_decision(response)
         self._validate_grounding(decision, evidence)
         return decision
 
-    async def _request(self, payload: dict, api_key: str) -> httpx.Response:
+    async def _request(self, payload: dict) -> httpx.Response:
         started = time.perf_counter()
         owns_client = self._client is None
         client = self._client or httpx.AsyncClient(
@@ -135,7 +134,10 @@ class GeminiVerifier:
         try:
             response = await client.post(
                 GEMINI_ENDPOINT.format(model=self._settings.gemini_model),
-                headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
+                headers={
+                    "x-goog-api-key": self._settings.gemini_api_key.get_secret_value(),
+                    "Content-Type": "application/json",
+                },
                 json=payload,
             )
             response.raise_for_status()

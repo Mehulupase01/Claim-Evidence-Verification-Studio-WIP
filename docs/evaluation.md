@@ -4,7 +4,7 @@ The test strategy is deliberately small. This product handles one document at a 
 
 ## Automated suite
 
-The local suite currently has 42 passing tests and two credential-gated integration tests. It covers:
+The credential-free suite currently has 43 passing tests and two credential-gated integration tests. With both real integrations enabled, all 45 tests pass. It covers:
 
 - request and response schema validation;
 - bounded upload validation and filename normalization;
@@ -52,4 +52,4 @@ $env:GEMINI_INTEGRATION = '1'
 uv run pytest -q tests/integration/test_gemini.py
 ```
 
-Those tests remain unexecuted in this environment because no R2 or Gemini credential is present. They must pass before the submission can claim that both real external integrations were exercised.
+Both tests passed in the release environment on 8 September 2026. They remain opt-in so ordinary local and CI runs are deterministic and never spend provider quota.

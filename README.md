@@ -2,7 +2,7 @@
 
 Claim Evidence Verifier is a compact reviewer workspace for checking a written claim against an uploaded source. It retrieves the most relevant passages, asks Gemini for a constrained verdict, resolves every citation back to stored source text, and saves the review for later inspection. The result is decision support; a person remains responsible for the final judgment.
 
-**Temporary review workspace:** https://hose-defendant-correctly-priorities.trycloudflare.com
+**Temporary review workspace:** https://rounds-cinema-scope-remind.trycloudflare.com
 
 The URL above is an account-less Cloudflare Quick Tunnel. It is available only while the local app and tunnel process are running, may change after a restart, and has no uptime guarantee. The page and health endpoint have been checked publicly. A live upload-to-verdict run still needs the repository owner's R2 and Gemini credentials.
 
@@ -11,7 +11,7 @@ The URL above is an account-less Cloudflare Quick Tunnel. It is available only w
 1. Accepts a UTF-8 text file or text-bearing PDF, up to the configured size and page limits.
 2. Stores the original and a page-aware extracted representation in Cloudflare R2.
 3. Ranks stable text chunks locally with BM25.
-4. Sends only the claim and top candidate passages to Gemini 2.5 Flash-Lite.
+4. Sends only the claim and top candidate passages to Gemini 3.5 Flash-Lite.
 5. Accepts one of `SUPPORTED`, `CONTRADICTED`, or `INSUFFICIENT_EVIDENCE` through a strict JSON Schema.
 6. Rejects citations that were not in the retrieved candidate set, then stores and displays the completed review.
 
@@ -45,7 +45,7 @@ reviews/rev_<uuid>.json
 - A Cloudflare R2 bucket and S3 API token
 - A Google AI Studio Gemini API key
 
-At the time of this release, [R2 Standard includes a monthly free tier](https://developers.cloudflare.com/r2/pricing/) and [Gemini 2.5 Flash-Lite has a free tier](https://ai.google.dev/gemini-api/docs/pricing). Provider terms and quotas can change, so check those pages before deploying. Google's free tier may use submitted content to improve its products; do not use sensitive source material without reviewing the current data terms.
+At the time of this release, [R2 Standard includes a monthly free tier](https://developers.cloudflare.com/r2/pricing/) and [Gemini 3.5 Flash-Lite has a free tier](https://ai.google.dev/gemini-api/docs/pricing). Provider terms and quotas can change, so check those pages before deploying. Google's free tier may use submitted content to improve its products; do not use sensitive source material without reviewing the current data terms.
 
 ## Configuration
 
@@ -64,7 +64,7 @@ Copy `.env.example` to `.env`, replace the three `replace_me` values, and put yo
 | `R2_BUCKET` | Existing bucket name | `claim-verifier` |
 | `VERIFIER_BACKEND` | Verification implementation; currently Gemini only | `gemini` |
 | `GEMINI_API_KEY` | Google AI Studio API key | required |
-| `GEMINI_MODEL` | Model identifier | `gemini-2.5-flash-lite` |
+| `GEMINI_MODEL` | Model identifier | `gemini-3.5-flash-lite` |
 | `MAX_UPLOAD_MB` | Upload limit, 1–50 MB | `10` |
 | `REQUEST_TIMEOUT_SECONDS` | External request timeout | `20` |
 | `RETRIEVAL_TOP_K` | Passages offered to the verifier | `5` |
@@ -109,7 +109,7 @@ uv sync --frozen
 uv run pytest -q
 ```
 
-The release baseline is **42 passed and 2 skipped**. The skipped tests are intentionally credential-gated. Run them only after placing real values in your local `.env`:
+The credential-free release baseline is **43 passed and 2 skipped**. With the owner-provided integrations enabled, the complete suite is **45 passed**. The two opt-in tests are intentionally skipped in normal CI so a pull request cannot spend provider quota. Run them only after placing real values in your local `.env`:
 
 ```powershell
 $env:R2_INTEGRATION = '1'
@@ -119,7 +119,7 @@ $env:GEMINI_INTEGRATION = '1'
 uv run pytest -q tests/integration/test_gemini.py
 ```
 
-The checked-in five-query retrieval corpus scores 5/5 at top 1 and top 3. Across 1,000 local iterations, median retrieval time was 0.1961 ms and p95 was 0.2181 ms. These figures are a regression baseline for the small synthetic corpus, not a general accuracy or latency claim. See [docs/evaluation.md](docs/evaluation.md).
+The checked-in five-query retrieval corpus scores 5/5 at top 1 and top 3. Across 1,000 local iterations, median retrieval time was 0.1961 ms and p95 was 0.2181 ms. These figures are a regression baseline for the small synthetic corpus, not a general accuracy or latency claim. The real-provider and public-flow evidence is recorded in [docs/external-verification.md](docs/external-verification.md).
 
 CI compiles the source, runs the suite and secret scan, validates Compose, builds the image without cache, audits image metadata and layer history, and boots the resulting container through `/health`.
 
@@ -189,6 +189,7 @@ If Docker reports that it cannot connect to the engine, start Docker Desktop and
 - [DESIGN.md](DESIGN.md) — concise design rationale, cuts, and open tradeoff
 - [BUILD_NOTES.md](BUILD_NOTES.md) — phase-by-phase evidence and AI assistance log
 - [docs/verification.md](docs/verification.md) — release gates and their current status
+- [docs/external-verification.md](docs/external-verification.md) — real R2, Gemini, Docker, and public-flow evidence
 - [docs/release-checklist.md](docs/release-checklist.md) — reviewer and owner checklist
 - [CHANGELOG.md](CHANGELOG.md) — release summary
 

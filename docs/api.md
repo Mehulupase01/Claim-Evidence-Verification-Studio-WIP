@@ -56,7 +56,7 @@ Successful response:
       "retrieval_score": 1.084327
     }
   ],
-  "model": "gemini/gemini-2.5-flash-lite",
+  "model": "gemini/gemini-3.5-flash-lite",
   "created_at": "2026-09-08T00:00:02Z"
 }
 ```

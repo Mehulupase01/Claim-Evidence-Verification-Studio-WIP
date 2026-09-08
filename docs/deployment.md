@@ -4,11 +4,11 @@
 
 The temporary review endpoint created on 8 September 2026 is:
 
-**https://hose-defendant-correctly-priorities.trycloudflare.com**
+**https://rounds-cinema-scope-remind.trycloudflare.com**
 
 The root workspace and `/health` were both verified through Cloudflare. This is an account-less Quick Tunnel: the URL lasts only while the local application and `cloudflared` process remain running, and Cloudflare does not provide an uptime guarantee. It is suitable for a scheduled review window, not unattended production service.
 
-The public upload-to-verdict flow has not been run because this machine does not contain the owner's R2 or Gemini credentials. The application returns a safe configuration error instead of silently substituting local storage or a fake model.
+The public upload-to-verdict flow has been run against the real R2 bucket and Gemini API for all three verdicts. Each result was retrieved again from its persisted review URL, and a supported result was also completed and reloaded through the browser UI. See `external-verification.md` for the evidence and remaining operational caveats.
 
 ## Start the application
 
@@ -53,4 +53,4 @@ For an unattended review window, use a named Cloudflare Tunnel or a container ho
 - Quick Tunnels have no uptime commitment and can change URL after restart.
 - The application has no authentication by design; expose it only for the review window.
 - Host and provider free tiers can sleep, throttle, or change limits.
-- A successful public health check proves reachability, not the R2 and Gemini integrations. Run the credential-gated smoke tests and one real review before submission.
+- Rotate any credential that has crossed a non-secret channel, update `.env`, and restart the Compose service before an unattended review window.

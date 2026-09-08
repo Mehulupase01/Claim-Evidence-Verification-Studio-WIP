@@ -10,7 +10,7 @@ The model may select immutable evidence IDs but cannot provide authoritative quo
 
 ## 2026-09-08 - Provider selection
 
-Use Cloudflare R2 Standard storage and Gemini 2.5 Flash-Lite. Both had documented free-tier paths when selected. Keep both behind interfaces so availability changes do not alter the domain flow.
+Use Cloudflare R2 Standard storage and Gemini Flash-Lite. The master plan selected Gemini 2.5 Flash-Lite, but the real release smoke test returned Google's new-project retirement response and directed the application to Gemini 3.5 Flash-Lite. The replacement is GA, supports structured output, and retains a documented free tier. Keeping the provider behind an interface made the lifecycle update a configuration change rather than a domain rewrite.
 
 ## 2026-09-08 - Live review path
 

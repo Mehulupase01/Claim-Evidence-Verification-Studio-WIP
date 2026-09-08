@@ -1,4 +1,5 @@
 import json
+import traceback
 
 import httpx
 import pytest
@@ -43,7 +44,7 @@ def settings() -> Settings:
     return Settings(
         _env_file=None,
         gemini_api_key=SecretStr("unit_test_placeholder"),
-        gemini_model="gemini-2.5-flash-lite",
+        gemini_model="gemini-3.5-flash-lite",
     )
 
 
@@ -124,6 +125,28 @@ async def test_timeout_maps_to_bounded_timeout_error() -> None:
             await GeminiVerifier(settings(), client=client).verify(
                 "A claim", [candidate()]
             )
+
+
+@pytest.mark.asyncio
+async def test_http_failure_does_not_put_api_key_in_traceback() -> None:
+    sensitive_value = "credential_that_must_never_reach_a_traceback"
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(401, request=request)
+
+    configured = Settings(
+        _env_file=None,
+        gemini_api_key=SecretStr(sensitive_value),
+        gemini_model="gemini-3.5-flash-lite",
+    )
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(VerifierError) as captured:
+            await GeminiVerifier(configured, client=client).verify(
+                "A claim", [candidate()]
+            )
+
+    rendered_traceback = "".join(traceback.format_exception(captured.value))
+    assert sensitive_value not in rendered_traceback
 
 
 @pytest.mark.asyncio

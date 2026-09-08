@@ -29,7 +29,7 @@ class Settings(BaseSettings):
 
     verifier_backend: Literal["gemini"] = "gemini"
     gemini_api_key: SecretStr | None = None
-    gemini_model: str = "gemini-2.5-flash-lite"
+    gemini_model: str = "gemini-3.5-flash-lite"
 
     max_upload_mb: int = Field(default=10, ge=1, le=50)
     request_timeout_seconds: float = Field(default=20.0, ge=1.0, le=120.0)

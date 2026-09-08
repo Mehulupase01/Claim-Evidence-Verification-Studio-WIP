@@ -25,7 +25,7 @@ async def test_real_gemini_structured_verdict() -> None:
         retrieval_score=1.0,
     )
 
-    result = await GeminiVerifier(Settings(_env_file=None)).verify(
+    result = await GeminiVerifier(Settings()).verify(
         "The launch date is 18 September 2026.", [evidence]
     )
 

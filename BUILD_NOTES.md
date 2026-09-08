@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- [ ] Wire at least two independent external services or APIs that actually communicate with the application.
+- [x] Wire at least two independent external services or APIs that actually communicate with the application. Real R2 and Gemini integration tests and the combined public flow pass.
 - [x] Start reproducibly on a fresh machine using one documented command. A fresh GitHub runner built and started the Compose service, and an independent clone passed installation and tests.
 - [x] Provide a reviewer-reachable live URL or documented free tunnel path.
 - [x] Keep the AI-assisted implementation fully understood and explainable.
@@ -11,7 +11,7 @@
 - [x] Provide exact README run steps, every environment variable, and the live URL status.
 - [x] Commit a placeholder-only `.env.example` and ignore `.env`.
 - [x] Deliver a concise design note addressing all five requested prompts.
-- [x] Demonstrate upload, grounded verdict, evidence display, persistence, and retrieval with offline service boundaries. The real-provider run remains pending.
+- [x] Demonstrate upload, grounded verdict, evidence display, persistence, and retrieval through both offline boundaries and the real public service path.
 - [x] Handle unsupported, oversized, unextractable, missing, storage-failure, malformed-model, and timeout paths safely.
 
 ## Scope
@@ -44,7 +44,7 @@
 | --- | --- | --- |
 | 0 | Keep one FastAPI application as the orchestration boundary. | R2 and Gemini are the two real external services; splitting the candidate code would add fake complexity. |
 | 0 | Use Cloudflare R2 Standard storage through its S3-compatible API. | It directly matches the Studio environment and currently includes a small free allowance. |
-| 0 | Use Gemini 2.5 Flash-Lite through direct HTTPS. | It currently supports structured output and free-tier token usage; direct HTTP avoids a provider SDK dependency. |
+| 0 | Use Gemini Flash-Lite through direct HTTPS. | The model supports structured output and free-tier token usage; direct HTTP avoids a provider SDK dependency. The live release check moved the configured version from 2.5 to 3.5 after Google closed 2.5 to new projects. |
 | 0 | Implement BM25 locally. | The per-document corpus is small, lexical retrieval is deterministic, and a short implementation avoids another dependency. |
 | 0 | Persist review JSON in R2. | It keeps the take-home small; relational persistence becomes preferable when reviews need querying, ownership, or workflow state. |
 | 0 | Do not validate external credentials during application startup. | `/health` and the reviewer shell should boot cleanly; an invoked integration fails clearly if its settings are absent. |
@@ -78,21 +78,27 @@ Phase 0 added no implementation dependency. Phase 1 introduced the following pin
 | 7 | Codex packaged the app as one non-root, health-checked container. | Used an exact Python patch tag and a fully resolved lock export; runtime secrets are supplied only when the container starts. | The image stays small and auditable, while Compose remains the single start command. |
 | 8 | Codex opened and verified a free Cloudflare Quick Tunnel to the local app. | Kept deployment outside the application and documented the URL's temporary nature and lack of SLA. | Public reachability is proven without coupling the code to a host or committing deployment credentials. |
 | 9 | Codex audited the failure matrix, added CI, a repository/history secret scanner, and a measured retrieval corpus. | Added rollback for split document writes and upgraded the PDF parser after a live advisory scan. | Release evidence now covers consistency and dependency risk, not only route behavior. |
-| 10 | Codex wrote the reviewer handoff, moved the clean image build into CI, and rendered the live UI at desktop and mobile widths. | Kept verified facts separate from owner-dependent R2/Gemini and unavailable WebMCP gates. | The submission is useful now without overstating what this credential-free environment proved. |
+| 10 | Codex completed the clean-room handoff, real-provider tests, public three-verdict flow, desktop/mobile result review, and WebMCP compatibility execution. | Migrated the retired model, removed a traceback secret leak, and recorded concrete R2/Gemini artifacts without recording credentials. | The release evidence now covers the actual provider, browser, and feature-detected tool paths as well as deterministic tests. |
 
 ## Bugs and Corrections
 
 During Phase 2, Codex first wrapped the R2 constructor in `lru_cache` with a `Settings` object as the cache key. Pydantic settings objects are not hashable, so that would have failed on the first real dependency resolution. The cache was removed before the route tests; creating the small adapter per request keeps the code correct and avoids retaining credential-bearing settings in a cache key.
 
-During Phase 7, Docker Desktop was installed but its Linux engine and Windows service were stopped. The service could not be started from this non-elevated session, and no Podman or alternate container builder was installed. That local limitation remains, but the Phase 10 GitHub runner completed the no-cache Compose build, image audit, container start, and health check successfully.
+During Phase 7, Docker Desktop was installed but its Linux engine and Windows service were stopped. The Phase 10 GitHub runner completed the no-cache Compose build first; once the local engine became available, the exact documented build and startup path also passed locally.
 
 During Phase 9, `pip-audit` found six published advisories against pypdf 6.14.2. The dependency was upgraded to 6.16.1 and the full extraction suite was rerun before the audit was allowed to pass. The first secret-scanner expression also matched ordinary variable names such as `TOKEN_PATTERN`; it was narrowed to uppercase credential assignment names, then rerun across source and history.
 
 During the Phase 10 pixel check, the first 390 px render showed that intrinsic grid sizing could push the workflow and review card beyond the viewport. Explicit zero-minimum grid tracks and child constraints removed the overflow. Fresh desktop and mobile Edge renders then loaded the sample, showed the expected safe missing-storage error, and reported no horizontal overflow; the same mobile check passed through the public tunnel.
 
+The first real integration invocation revealed that the opt-in tests disabled `.env` loading even though their instructions said to configure that file. They now load the local ignored environment while remaining skipped unless their explicit integration flags are set.
+
+The original Gemini 2.5 Flash-Lite generation call authenticated successfully but returned Google's new-project retirement response. The configured model moved to Gemini 3.5 Flash-Lite, which retains the required structured output and free-tier path; the real smoke test and all three public verdicts then passed.
+
+The failed Gemini test also showed that passing an unwrapped API key as a private method argument lets pytest display it in an enhanced traceback. The key is now read from its `SecretStr` only at the HTTP header boundary, never passed as an argument, and a regression test asserts that provider failures do not place it in the exception traceback.
+
 ## Cuts
 
-OCR, authentication, asynchronous processing, relational metadata, advanced retrieval, and the optional webhook are deliberately excluded until every core release gate is green.
+OCR, authentication, asynchronous processing, relational metadata, advanced retrieval, and the optional webhook are deliberately excluded from the take-home boundary.
 
 ## Production Hardening
 

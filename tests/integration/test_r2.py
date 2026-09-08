@@ -16,7 +16,7 @@ pytestmark = pytest.mark.integration
 )
 @pytest.mark.asyncio
 async def test_real_r2_round_trip() -> None:
-    storage = R2Storage(Settings(_env_file=None))
+    storage = R2Storage(Settings())
     key = f"integration-tests/{uuid.uuid4().hex}.txt"
     payload = b"claim-verifier-r2-round-trip"
 
