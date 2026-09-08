@@ -20,7 +20,7 @@ Gemini is called directly with HTTPX instead of through LangChain or an agent fr
 
 ## How I used AI
 
-I gave Codex the technical architecture, request flow, main functions, validation rules, and expected behavior. I split the work into a few phases to keep the development structured, then provided the instructions for each phase after reviewing the previous one. Codex implemented the code and tests from those instructions, while I checked the results before moving forward.
+I gave Codex the technical architecture, request flow, main functions, validation rules, and expected behavior. I split the work into a few phases to keep the development structured, then provided the instructions for each new phase only after the previous one was completed and reviewed. Codex implemented the code and tests from those instructions, while I checked the results before moving forward.
 
 One issue I caught was an `lru_cache` around the R2 dependency constructor. It used an unhashable Pydantic `Settings` object as the cache key, so I removed the cache before continuing.
 
