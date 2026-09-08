@@ -77,12 +77,15 @@ Phase 0 added no implementation dependency. Phase 1 introduced the following pin
 | 6 | Codex built the reviewer workspace and its loading, error, result, and saved-review states. | Used plain browser APIs and text-only DOM updates for source and model content; added one feature-detected WebMCP action over the same visible flow. | There is no frontend build chain, and untrusted evidence never enters the page through HTML injection. |
 | 7 | Codex packaged the app as one non-root, health-checked container. | Used an exact Python patch tag and a fully resolved lock export; runtime secrets are supplied only when the container starts. | The image stays small and auditable, while Compose remains the single start command. |
 | 8 | Codex opened and verified a free Cloudflare Quick Tunnel to the local app. | Kept deployment outside the application and documented the URL's temporary nature and lack of SLA. | Public reachability is proven without coupling the code to a host or committing deployment credentials. |
+| 9 | Codex audited the failure matrix, added CI, a repository/history secret scanner, and a measured retrieval corpus. | Added rollback for split document writes and upgraded the PDF parser after a live advisory scan. | Release evidence now covers consistency and dependency risk, not only route behavior. |
 
 ## Bugs and Corrections
 
 During Phase 2, Codex first wrapped the R2 constructor in `lru_cache` with a `Settings` object as the cache key. Pydantic settings objects are not hashable, so that would have failed on the first real dependency resolution. The cache was removed before the route tests; creating the small adapter per request keeps the code correct and avoids retaining credential-bearing settings in a cache key.
 
 During Phase 7, Docker Desktop was installed but its Linux engine and Windows service were stopped. The service could not be started from this non-elevated session, and no Podman or alternate container builder was installed. Compose configuration validation and container-contract tests pass; the no-cache build remains a release gate to run once Docker Desktop is started by the user.
+
+During Phase 9, `pip-audit` found six published advisories against pypdf 6.14.2. The dependency was upgraded to 6.16.1 and the full extraction suite was rerun before the audit was allowed to pass. The first secret-scanner expression also matched ordinary variable names such as `TOKEN_PATTERN`; it was narrowed to uppercase credential assignment names, then rerun across source and history.
 
 ## Cuts
 

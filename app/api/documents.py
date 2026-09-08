@@ -1,18 +1,25 @@
 from pathlib import PurePosixPath
 import json
+import logging
 import uuid
 
 from fastapi import APIRouter, Depends, File, UploadFile, status
 
 from app.config import Settings, get_settings
 from app.dependencies import get_extraction_service, get_storage_service
-from app.errors import InvalidUploadError, UnsupportedFileError, UploadTooLargeError
+from app.errors import (
+    InvalidUploadError,
+    StorageError,
+    UnsupportedFileError,
+    UploadTooLargeError,
+)
 from app.models import DocumentUploadResponse
 from app.services.extraction import ExtractionService
 from app.services.storage import StorageService
 
 
 router = APIRouter(prefix="/documents", tags=["documents"])
+logger = logging.getLogger("claim_verifier.documents")
 
 ALLOWED_TYPES = {
     ".txt": {"text/plain", "application/octet-stream"},
@@ -78,14 +85,28 @@ async def upload_document(
         content_type=content_type,
         metadata={"document-id": document_id},
     )
-    await storage.put_bytes(
-        f"documents/{document_id}/extracted.json",
-        json.dumps(extracted.model_dump(mode="json"), separators=(",", ":")).encode(
-            "utf-8"
-        ),
-        content_type="application/json",
-        metadata={"document-id": document_id},
-    )
+    try:
+        await storage.put_bytes(
+            f"documents/{document_id}/extracted.json",
+            json.dumps(
+                extracted.model_dump(mode="json"), separators=(",", ":")
+            ).encode("utf-8"),
+            content_type="application/json",
+            metadata={"document-id": document_id},
+        )
+    except StorageError:
+        try:
+            await storage.delete(object_key)
+        except StorageError:
+            logger.warning(
+                "could not remove original after sidecar failure",
+                extra={
+                    "operation": "rollback_document_upload",
+                    "document_id": document_id,
+                    "error_type": "rollback_failed",
+                },
+            )
+        raise
     return DocumentUploadResponse(
         document_id=document_id,
         filename=filename,

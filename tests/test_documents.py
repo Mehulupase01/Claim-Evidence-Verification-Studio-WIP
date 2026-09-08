@@ -116,3 +116,42 @@ async def test_storage_failure_is_safe_and_contains_request_id() -> None:
     assert body["code"] == "storage_unavailable"
     assert body["request_id"] == response.headers["X-Request-ID"]
     assert "credential" not in response.text.lower()
+
+
+class SidecarFailingStorage(InMemoryStorage):
+    async def put_bytes(self, key, data, *, content_type, metadata=None) -> None:
+        if key.endswith("/extracted.json"):
+            raise StorageError()
+        await super().put_bytes(
+            key, data, content_type=content_type, metadata=metadata
+        )
+
+
+@pytest.mark.asyncio
+async def test_sidecar_failure_rolls_back_the_original_object() -> None:
+    storage = SidecarFailingStorage()
+
+    response = await post_file(
+        storage,
+        "report.txt",
+        b"This content is long enough to be extracted before the write fails.",
+        "text/plain",
+    )
+
+    assert response.status_code == 502
+    assert storage.objects == {}
+
+
+@pytest.mark.asyncio
+async def test_upload_filename_is_reduced_to_its_safe_basename() -> None:
+    storage = InMemoryStorage()
+
+    response = await post_file(
+        storage,
+        "../../private/report.txt",
+        b"A valid report body that contains enough text for extraction.",
+        "text/plain",
+    )
+
+    assert response.status_code == 201
+    assert response.json()["filename"] == "report.txt"

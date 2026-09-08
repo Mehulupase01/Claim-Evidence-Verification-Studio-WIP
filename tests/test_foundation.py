@@ -48,6 +48,9 @@ def test_create_review_request_rejects_short_claim_and_unknown_fields() -> None:
             hidden_prompt="not allowed",
         )
 
+    with pytest.raises(ValidationError):
+        CreateReviewRequest(document_id="doc_" + "a" * 32, claim="   ")
+
 
 def test_review_schema_rejects_unknown_verdict() -> None:
     with pytest.raises(ValidationError):

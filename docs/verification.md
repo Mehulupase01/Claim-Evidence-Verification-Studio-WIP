@@ -22,6 +22,10 @@ This ledger distinguishes deterministic automated checks from credential-depende
 | F5-F6 | Timeout and malformed-model failures | Pass offline | Adapter tests raise bounded typed errors without returning provider payloads. |
 | L1 | Public health and workspace | Pass | `https://hose-defendant-correctly-priorities.trycloudflare.com` returned the workspace and `200 {"status":"ok"}` through Cloudflare on 2026-09-08. |
 | L2 | Public happy path | Blocked pending runtime credentials | The tunnel is live; R2 and Gemini credentials are absent from this machine. |
+| Q1 | Deterministic automated suite | Pass | 42 passed and 2 credential-gated integration tests skipped on 2026-09-08. |
+| Q2 | Retrieval regression corpus | Pass | 5/5 top-1 and top-3; median 0.1961 ms, p95 0.2181 ms over 1,000 runs. |
+| Q3 | Dependency vulnerability audit | Pass | `pip-audit -r requirements.lock` reported no known vulnerabilities after pypdf was upgraded to 6.16.1. |
+| Q4 | Negative-path log review | Pass | Timeout, malformed-output, and storage-failure logs contain operational labels/status only. |
 | D1-D2 | README exactness and design note completeness | Pending | - |
 | U1 | Reviewer workspace assets and security headers | Pass | Root, CSS, JavaScript, sample source, CSP, and untrusted-text rendering assertions pass. |
 | U2 | Desktop/mobile visual handoff | Not run | The available browser-control environment reported that no browser surface was available. |

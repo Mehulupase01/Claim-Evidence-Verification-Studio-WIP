@@ -1,0 +1,46 @@
+{
+  "chunks": [
+    {
+      "evidence_id": "chunk_0001",
+      "page": 1,
+      "text": "The second quarter closed with revenue 27 percent above the same quarter last year."
+    },
+    {
+      "evidence_id": "chunk_0002",
+      "page": 1,
+      "text": "Operating costs rose 9 percent, the team did not open a second office, and headcount remained at 18 people."
+    },
+    {
+      "evidence_id": "chunk_0003",
+      "page": 2,
+      "text": "The studio plans to review hiring needs again in October."
+    },
+    {
+      "evidence_id": "chunk_0004",
+      "page": 2,
+      "text": "No decision has been made about expanding into a new region."
+    }
+  ],
+  "queries": [
+    {
+      "claim": "Revenue increased by 27 percent in the second quarter.",
+      "expected_evidence_id": "chunk_0001"
+    },
+    {
+      "claim": "Operating costs rose by 9 percent.",
+      "expected_evidence_id": "chunk_0002"
+    },
+    {
+      "claim": "Headcount remained at 18 people.",
+      "expected_evidence_id": "chunk_0002"
+    },
+    {
+      "claim": "Hiring needs will be reviewed in October.",
+      "expected_evidence_id": "chunk_0003"
+    },
+    {
+      "claim": "A new region has not yet been approved.",
+      "expected_evidence_id": "chunk_0004"
+    }
+  ]
+}

@@ -6,7 +6,8 @@ import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.documents import router as documents_router
@@ -47,8 +48,6 @@ def create_app() -> FastAPI:
 
     @application.exception_handler(AppError)
     async def app_error_handler(_: Request, exc: AppError):
-        from fastapi.responses import JSONResponse
-
         logger.warning(
             "request failed safely",
             extra={
@@ -68,6 +67,40 @@ def create_app() -> FastAPI:
             },
         )
 
+    @application.exception_handler(RequestValidationError)
+    async def validation_error_handler(_: Request, __: RequestValidationError):
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": {
+                    "code": "validation_error",
+                    "message": "Check the submitted fields and try again.",
+                    "request_id": request_id_context.get(),
+                }
+            },
+        )
+
+    @application.exception_handler(Exception)
+    async def unexpected_error_handler(_: Request, exc: Exception):
+        logger.error(
+            "unexpected request failure",
+            exc_info=(type(exc), exc, exc.__traceback__),
+            extra={
+                "operation": "unhandled_error",
+                "status_code": 500,
+                "error_type": type(exc).__name__,
+            },
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": {
+                    "code": "internal_error",
+                    "message": "The request could not be completed.",
+                    "request_id": request_id_context.get(),
+                }
+            },
+        )
     @application.middleware("http")
     async def request_context(request: Request, call_next):
         supplied_id = request.headers.get("X-Request-ID", "")

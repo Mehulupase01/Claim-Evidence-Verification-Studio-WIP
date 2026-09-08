@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import uuid
 
 from fastapi import APIRouter, Depends, status
@@ -33,6 +34,7 @@ from app.services.verifier import LLMVerifier
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 logger = logging.getLogger("claim_verifier.reviews")
+REVIEW_ID_PATTERN = re.compile(r"^rev_[0-9a-f]{32}$")
 
 
 def extracted_key(document_id: str) -> str:
@@ -128,7 +130,7 @@ async def get_review(
     review_id: str,
     storage: StorageService = Depends(get_storage_service),
 ) -> ReviewResponse:
-    if not review_id.startswith("rev_") or len(review_id) != 36:
+    if not REVIEW_ID_PATTERN.fullmatch(review_id):
         raise ReviewNotFoundError()
     try:
         data = await storage.get_bytes(review_key(review_id))

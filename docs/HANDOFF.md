@@ -2,8 +2,8 @@
 
 ## Current state
 
-The backend, reviewer workspace, and container packaging are implemented. A Cloudflare Quick Tunnel currently exposes the running local app at `https://hose-defendant-correctly-priorities.trycloudflare.com`; both the workspace and public health route were verified. The URL is temporary and survives only while the local Uvicorn and cloudflared sessions keep running. The full public review still needs owner-supplied R2 and Gemini credentials.
+Implementation and offline hardening are complete. The suite has 42 passing tests, and two clearly marked external tests wait for owner credentials. The secret/history scan and dependency audit pass. The checked-in retrieval corpus scored 5/5 at top-1 with a measured 0.2181 ms p95 over 1,000 iterations. The Cloudflare Quick Tunnel currently exposes the app, but the full public review still needs R2 and Gemini credentials.
 
 ## Next gate
 
-Run the full adversarial matrix, add any missing contract checks, audit negative-path logs for sensitive output, and record measured test evidence before the release documentation pass.
+Perform the clean-room release pass: write the final natural-language README and design note, run from a fresh clone where the available environment permits, repeat secret and dependency scans, and state every credential- or Docker-gated check plainly.

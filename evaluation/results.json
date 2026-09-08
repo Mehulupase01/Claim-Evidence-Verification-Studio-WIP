@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-09-08T00:15:50.244387+00:00",
+  "python": "3.12.13",
+  "platform": "Windows",
+  "corpus_chunks": 4,
+  "queries": 5,
+  "iterations": 1000,
+  "top_1_accuracy": 1.0,
+  "top_3_accuracy": 1.0,
+  "latency_ms": {
+    "median": 0.1961,
+    "p95": 0.2181
+  }
+}
