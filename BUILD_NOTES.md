@@ -1,109 +1,105 @@
 # Build Notes
 
-## Requirements
+These notes are a record of how the project came together, including the parts that needed correction. They are not intended to be a second README; setup instructions live in [README.md](README.md), and the main architectural reasoning is in [DESIGN.md](DESIGN.md).
 
-- [x] Wire at least two independent external services or APIs that actually communicate with the application. Real R2 and Gemini integration tests and the combined public flow pass.
-- [x] Start reproducibly on a fresh machine using one documented command. A fresh GitHub runner built and started the Compose service, and an independent clone passed installation and tests.
-- [x] Provide a reviewer-reachable live URL or documented free tunnel path.
-- [x] Keep the AI-assisted implementation fully understood and explainable.
-- [x] Keep credentials out of the repository, Git history, image layers, and logs. Repository/history scanning and the clean CI image-layer audit pass.
-- [x] Use free tiers and document the cost posture.
-- [x] Provide exact README run steps, every environment variable, and the live URL status.
-- [x] Commit a placeholder-only `.env.example` and ignore `.env`.
-- [x] Deliver a concise design note addressing all five requested prompts.
-- [x] Demonstrate upload, grounded verdict, evidence display, persistence, and retrieval through both offline boundaries and the real public service path.
-- [x] Handle unsupported, oversized, unextractable, missing, storage-failure, malformed-model, and timeout paths safely.
+## What was delivered
 
-## Scope
+The finished project connects a FastAPI application to Cloudflare R2 and the Gemini API. A reviewer can upload a text document or text-based PDF, check a claim, inspect the supporting or conflicting passages, and reopen the saved review.
 
-### MVP
+The brief's main requirements are covered:
 
-- One `.txt` or text-based `.pdf` per verification request.
-- Cloudflare R2 for original documents, extracted sidecars, and saved reviews.
-- Conservative text chunking with stable evidence IDs and page metadata.
-- Deterministic BM25 retrieval behind a small interface.
-- Gemini structured output restricted to the retrieved passages.
-- Exactly three verdicts: `SUPPORTED`, `CONTRADICTED`, and `INSUFFICIENT_EVIDENCE`.
-- Server-side evidence resolution; the model never authors displayed quotations.
-- FastAPI JSON API plus one plain HTML/CSS/JavaScript reviewer surface.
-- Request IDs, structured safe logs, bounded uploads, timeouts, and typed errors.
-- Docker Compose as the single primary start command.
+- R2 and Gemini are real external integrations, not local stand-ins.
+- Docker Compose is the documented one-command start.
+- A temporary public URL is available for the review window.
+- `.env.example` contains placeholders, while the real `.env` stays ignored.
+- Repository history, image layers, and runtime logs were checked for credentials.
+- The README and design note contain the requested handoff information.
+- The project uses free-tier services.
 
-### Non-goals
+## How the build progressed
 
-- Agents, LangChain, LangGraph, autonomous tool selection, or multi-agent orchestration.
-- Vector databases, embeddings, rerankers, knowledge graphs, or GraphRAG.
-- Postgres, Redis, Celery, Kafka, Kubernetes, or background queues.
-- OCR, malware scanning, production authentication, multi-tenancy, or a full observability stack.
-- React, Vite, Tailwind, or another frontend build system.
-- Expensive benchmark infrastructure or a large evaluation corpus.
+### Phase 0: scope and architecture
 
-## Decisions
+I started by reducing the master plan to one complete review path: upload, extract, retrieve, verify, save, and reopen. I chose one FastAPI application rather than several internal services. R2 and Gemini already provide the two independent service boundaries required by the brief, and additional microservices would have created deployment work without improving the user flow.
 
-| Phase | Decision | Reason |
-| --- | --- | --- |
-| 0 | Keep one FastAPI application as the orchestration boundary. | R2 and Gemini are the two real external services; splitting the candidate code would add fake complexity. |
-| 0 | Use Cloudflare R2 Standard storage through its S3-compatible API. | It directly matches the Studio environment and currently includes a small free allowance. |
-| 0 | Use Gemini Flash-Lite through direct HTTPS. | The model supports structured output and free-tier token usage; direct HTTP avoids a provider SDK dependency. The live release check moved the configured version from 2.5 to 3.5 after Google closed 2.5 to new projects. |
-| 0 | Implement BM25 locally. | The per-document corpus is small, lexical retrieval is deterministic, and a short implementation avoids another dependency. |
-| 0 | Persist review JSON in R2. | It keeps the take-home small; relational persistence becomes preferable when reviews need querying, ownership, or workflow state. |
-| 0 | Do not validate external credentials during application startup. | `/health` and the reviewer shell should boot cleanly; an invoked integration fails clearly if its settings are absent. |
+The first decision log also set two rules that stayed in place throughout the build: model output would never be accepted as quotation text, and the app had to start even when external credentials were missing so that its health endpoint remained useful.
 
-## Dependencies
+### Phase 1: application foundation
 
-Phase 0 added no implementation dependency. Phase 1 introduced the following pinned packages:
+This phase added the FastAPI shell, typed settings, request IDs, structured logging, error responses, and the initial tests. Configuration is loaded from environment variables and credential fields use Pydantic secret types.
 
-| Dependency | Why it is here |
-| --- | --- |
-| FastAPI and Pydantic | Typed HTTP routes and strict request/response contracts. |
-| pydantic-settings | One environment-backed settings model with secret-aware values. |
-| Uvicorn | The small ASGI server used locally and in the container. |
-| python-multipart | Bounded file uploads in Phase 2. |
-| boto3 | Cloudflare R2's supported S3-compatible client path in Phase 2. |
-| HTTPX | A bounded direct Gemini HTTP call in Phase 4 and in-process API tests. |
-| pypdf | Text-based PDF extraction in Phase 3. |
-| pytest and pytest-asyncio | Deterministic offline verification. |
+### Phase 2: R2 storage and uploads
 
-## AI Assistance Log
+I added the S3-compatible R2 adapter and a bounded document upload route. The production code uses boto3, while routine tests use an in-memory implementation of the same small interface. Storage calls run outside the async event loop.
 
-| Phase | Assistance | Accepted or changed | Why |
-| --- | --- | --- | --- |
-| 0 | Codex reconciled the Studio brief, master plan, and empty repository into a phase plan. | Accepted the prescribed right-sized architecture; current provider availability was checked against official documentation. | Prevents scope drift and avoids selecting a discontinued or paid-only model. |
-| 1 | Codex created the typed application shell, settings, request context, and schemas. | Kept the settings lazy so missing external credentials do not take down the health endpoint. | A reviewer can start and diagnose the service before configuring optional request paths. |
-| 2 | Codex implemented an R2 adapter and the first document-upload route. | Kept the adapter small, made boto3 calls off the event loop, and put an in-memory test double behind the same contract. | The production path is a real S3-compatible API while routine tests remain fast and offline. |
-| 3 | Codex added bounded text/PDF extraction, stable chunking, and BM25 retrieval. | Kept offsets tied to normalized page text and stored the full extracted artifact beside the original. | Reviews can be repeated without reparsing the upload, and evidence always retains its source page. |
-| 4 | Codex added the Gemini structured-output adapter and adversarial response tests. | Used the API key in a header, bounded each request, and retained application-side schema and evidence-ID checks. | Provider-side JSON structure helps, but only the application can enforce that selected citations came from its candidate set. |
-| 5 | Codex wired document artifacts, retrieval, verification, evidence resolution, and review persistence into one readable route. | Persist only after every schema and grounding check passes; failed attempts remain in request-scoped logs only. | A saved review is always a valid human-review artifact, never a partial upstream response. |
-| 6 | Codex built the reviewer workspace and its loading, error, result, and saved-review states. | Used plain browser APIs and text-only DOM updates for source and model content; added one feature-detected WebMCP action over the same visible flow. | There is no frontend build chain, and untrusted evidence never enters the page through HTML injection. |
-| 7 | Codex packaged the app as one non-root, health-checked container. | Used an exact Python patch tag and a fully resolved lock export; runtime secrets are supplied only when the container starts. | The image stays small and auditable, while Compose remains the single start command. |
-| 8 | Codex opened and verified a free Cloudflare Quick Tunnel to the local app. | Kept deployment outside the application and documented the URL's temporary nature and lack of SLA. | Public reachability is proven without coupling the code to a host or committing deployment credentials. |
-| 9 | Codex audited the failure matrix, added CI, a repository/history secret scanner, and a measured retrieval corpus. | Added rollback for split document writes and upgraded the PDF parser after a live advisory scan. | Release evidence now covers consistency and dependency risk, not only route behavior. |
-| 10 | Codex completed the clean-room handoff, real-provider tests, public three-verdict flow, desktop/mobile result review, and WebMCP compatibility execution. | Migrated the retired model, removed a traceback secret leak, and recorded concrete R2/Gemini artifacts without recording credentials. | The release evidence now covers the actual provider, browser, and feature-detected tool paths as well as deterministic tests. |
+The original file and its extracted sidecar are written under one document ID. If the second write fails, the route removes the first object rather than leaving a half-created document behind.
 
-## Bugs and Corrections
+### Phase 3: extraction and retrieval
 
-During Phase 2, Codex first wrapped the R2 constructor in `lru_cache` with a `Settings` object as the cache key. Pydantic settings objects are not hashable, so that would have failed on the first real dependency resolution. The cache was removed before the route tests; creating the small adapter per request keeps the code correct and avoids retaining credential-bearing settings in a cache key.
+Text files and PDFs with embedded text are supported. Extraction keeps page information, normalizes the text, and creates stable passage IDs. A local BM25 implementation ranks those passages for the claim.
 
-During Phase 7, Docker Desktop was installed but its Linux engine and Windows service were stopped. The Phase 10 GitHub runner completed the no-cache Compose build first; once the local engine became available, the exact documented build and startup path also passed locally.
+Scanned PDFs were left out on purpose. They return a clear error explaining that no text could be extracted, rather than pretending an empty document was processed successfully.
 
-During Phase 9, `pip-audit` found six published advisories against pypdf 6.14.2. The dependency was upgraded to 6.16.1 and the full extraction suite was rerun before the audit was allowed to pass. The first secret-scanner expression also matched ordinary variable names such as `TOKEN_PATTERN`; it was narrowed to uppercase credential assignment names, then rerun across source and history.
+### Phase 4: Gemini verification
 
-During the Phase 10 pixel check, the first 390 px render showed that intrinsic grid sizing could push the workflow and review card beyond the viewport. Explicit zero-minimum grid tracks and child constraints removed the overflow. Fresh desktop and mobile Edge renders then loaded the sample, showed the expected safe missing-storage error, and reported no horizontal overflow; the same mobile check passed through the public tunnel.
+The Gemini adapter sends only the claim and the top-ranked passages. The request asks for structured JSON, and the response is checked again with Pydantic before the application uses it.
 
-The first real integration invocation revealed that the opt-in tests disabled `.env` loading even though their instructions said to configure that file. They now load the local ignored environment while remaining skipped unless their explicit integration flags are set.
+Evidence IDs receive a second application-level check. Unknown or repeated IDs are rejected, and a verdict that requires evidence cannot be saved without it. The source text shown to the reviewer is always resolved from the retrieved passage set.
 
-The original Gemini 2.5 Flash-Lite generation call authenticated successfully but returned Google's new-project retirement response. The configured model moved to Gemini 3.5 Flash-Lite, which retains the required structured output and free-tier path; the real smoke test and all three public verdicts then passed.
+### Phase 5: saved reviews
 
-The failed Gemini test also showed that passing an unwrapped API key as a private method argument lets pytest display it in an enhanced traceback. The key is now read from its `SecretStr` only at the HTTP header boundary, never passed as an argument, and a regression test asserts that provider failures do not place it in the exception traceback.
+This phase joined storage, retrieval, Gemini, and evidence validation into the complete API flow. Reviews are only written after every validation step succeeds. A saved review can be loaded by ID without relying on process memory.
 
-## Cuts
+Tests cover all three verdicts as well as missing documents, storage failures, timeouts, malformed model responses, and invalid evidence references.
 
-OCR, authentication, asynchronous processing, relational metadata, advanced retrieval, and the optional webhook are deliberately excluded from the take-home boundary.
+### Phase 6: reviewer interface
 
-## Production Hardening
+I built the interface with plain HTML, CSS, and browser JavaScript. It includes sample data, clear loading and error states, evidence cards, and a link for reopening the saved result.
 
-Prioritized after the take-home boundary: authentication and authorization, malware scanning plus retention controls, relational workflow/audit metadata, rate limiting, asynchronous extraction for large files, distributed tracing, and a broader evaluation corpus.
+All document and model text is inserted as text rather than HTML. That keeps uploaded content from becoming executable page markup. A feature-detected WebMCP action uses the same visible review flow where the browser supports it and otherwise stays out of the way.
 
-## Open Tradeoff
+### Phase 7: Docker packaging
 
-R2 JSON artifacts minimize infrastructure and fit immutable review objects, but they do not support efficient querying or transactional workflow state. The point at which review search, ownership, or audit relationships justify a relational database remains the principal open tradeoff.
+The application was packaged as a single non-root container with a health check. Dependencies come from the checked-in lock file, and secrets are supplied only when the container starts. The exact README command, `docker compose up --build`, was tested locally and on a fresh GitHub runner.
+
+### Phase 8: public review link
+
+I used a free Cloudflare Quick Tunnel to expose the local Compose service. This meets the brief's live-URL requirement without changing the application or putting deployment credentials in the repository.
+
+The tradeoff is uptime: the URL works only while the local machine, container, and tunnel are running. It is suitable for a short review period, not permanent hosting.
+
+### Phase 9: hardening and evaluation
+
+I added negative-path tests, a repository and Git-history secret scan, dependency auditing, image checks, and a small retrieval regression set. The five included queries all rank their expected passage first. Over 1,000 runs on this corpus, median retrieval time was 0.1961 ms and p95 was 0.2181 ms.
+
+Those numbers are useful for catching a regression in this project. They should not be read as a broad benchmark for arbitrary documents.
+
+### Phase 10: release verification
+
+The final pass covered a clean Compose build, container health, live R2 and Gemini tests, all three verdicts through the public URL, saved-review reloads, and desktop and mobile browser checks.
+
+The offline suite currently reports 43 passed tests and two intentionally skipped provider tests. Enabling both real integrations produces 45 passed tests. The latest CI release gate also passed.
+
+## Problems I found and fixed
+
+Several useful issues only appeared once the project was exercised outside the simplest test path:
+
+- The first R2 dependency used `lru_cache` with a Pydantic `Settings` object as a key. That object is not hashable, so dependency resolution would have failed on the first request. I removed the cache.
+- The first integration-test configuration disabled `.env` loading even though the instructions told the operator to put credentials there. The tests now load the ignored local file but still require an explicit opt-in flag.
+- Gemini 2.5 Flash-Lite authenticated successfully but returned a retirement response for the new project. I moved the configuration to Gemini 3.5 Flash-Lite and repeated the real structured-output and public-flow checks.
+- An early Gemini failure showed that passing a plain API key as a method argument could expose it in pytest's enhanced traceback. The key is now read from its secret wrapper only where the HTTP header is created, and a regression test checks the traceback.
+- `pip-audit` found published advisories for the original pypdf version. I upgraded it to 6.16.1, reran extraction tests, and repeated the audit.
+- The first mobile render could grow wider than a 390 px viewport because of intrinsic grid sizing. Explicit minimum constraints fixed the overflow, and both desktop and mobile layouts were rendered again.
+- The first secret-scan pattern was too broad and flagged harmless variable names. I narrowed it to actual credential assignment shapes, then reran it across source files and Git history.
+
+These corrections are also the clearest example of how AI was used during the project: it accelerated implementation, but its output was not treated as proof. Real runs, provider responses, audits, and browser checks decided what stayed.
+
+## What I intentionally did not build
+
+The take-home version does not include authentication, OCR, malware scanning, background processing, a webhook, a relational workflow database, or semantic retrieval. It is designed for one bounded source document per review flow.
+
+For a production version, I would start with identity, authorization, tenant-scoped storage, rate limits, file scanning, retention rules, and relational audit metadata. Larger files should be processed asynchronously. I would evaluate hybrid retrieval only after testing against representative documents.
+
+## Final operational note
+
+The code and release checks are complete. Before handing the link to a reviewer, the owner should rotate any credentials that have crossed a non-secret channel, update the ignored local `.env`, restart the container, and confirm that the temporary tunnel is still reachable.

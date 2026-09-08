@@ -1,35 +1,43 @@
 # Claim Evidence Verifier
 
-Claim Evidence Verifier is a compact reviewer workspace for checking a written claim against an uploaded source. It retrieves the most relevant passages, asks Gemini for a constrained verdict, resolves every citation back to stored source text, and saves the review for later inspection. The result is decision support; a person remains responsible for the final judgment.
+Claim Evidence Verifier is a small review tool for checking whether a statement is supported by an original document. Upload a text file or text-based PDF, enter a claim, and the app will find the most relevant passages, ask Gemini for a verdict, and save the review so it can be opened again later.
 
-**Temporary review workspace:** https://rounds-cinema-scope-remind.trycloudflare.com
+It is meant to help a reviewer find and assess evidence more quickly. It does not replace the reviewer: the result always includes the source passages used, and the final decision stays with the person reading them.
 
-The URL above is an account-less Cloudflare Quick Tunnel. It is available only while the local app and tunnel process are running, may change after a restart, and has no uptime guarantee. The page and health endpoint have been checked publicly. A live upload-to-verdict run still needs the repository owner's R2 and Gemini credentials.
+## Try the live version
 
-## What it does
+**Review workspace:** https://rounds-cinema-scope-remind.trycloudflare.com
 
-1. Accepts a UTF-8 text file or text-bearing PDF, up to the configured size and page limits.
-2. Stores the original and a page-aware extracted representation in Cloudflare R2.
-3. Ranks stable text chunks locally with BM25.
-4. Sends only the claim and top candidate passages to Gemini 3.5 Flash-Lite.
-5. Accepts one of `SUPPORTED`, `CONTRADICTED`, or `INSUFFICIENT_EVIDENCE` through a strict JSON Schema.
-6. Rejects citations that were not in the retrieved candidate set, then stores and displays the completed review.
+This is a temporary Cloudflare Quick Tunnel running in front of the Docker container on the project owner's machine. Reviewers do not need their own R2 or Gemini credentials to use it. The link only remains available while the machine, container, and tunnel are running, and it may change if the tunnel is restarted.
 
-## Architecture
+The public deployment has been tested through a complete upload-to-review flow, including all three verdicts and reopening a saved result.
+
+## How a review works
+
+1. The reviewer uploads a UTF-8 `.txt` file or a PDF that already contains selectable text.
+2. The app stores the original file in Cloudflare R2, extracts its text, splits it into stable passages, and stores that extracted copy beside the original.
+3. A local BM25 search ranks the passages against the claim.
+4. Gemini receives the claim and only the highest-ranking passages. It must return one of three results: `SUPPORTED`, `CONTRADICTED`, or `INSUFFICIENT_EVIDENCE`.
+5. The backend checks every evidence ID returned by Gemini. It then fills in the quotation from the stored source rather than trusting model-written quote text.
+6. The finished review is saved in R2 and returned with a URL that can be reopened later.
+
+That last validation step matters. Gemini can choose from passages the application supplied, but it cannot introduce a new quotation and have it accepted as evidence.
+
+## System layout
 
 ```mermaid
 flowchart LR
-    Browser[Reviewer browser] --> API[FastAPI app]
-    API --> Extract[Text/PDF extraction]
-    Extract --> BM25[Local BM25 retrieval]
+    Browser[Reviewer browser] --> API[FastAPI application]
+    API --> Extract[Text and PDF extraction]
+    Extract --> Search[BM25 passage search]
     API <-->|S3-compatible API| R2[Cloudflare R2]
-    BM25 --> API
-    API <-->|HTTPS + JSON Schema| Gemini[Gemini API]
+    Search --> API
+    API <-->|HTTPS and JSON Schema| Gemini[Gemini API]
 ```
 
-FastAPI is the only application service. R2 holds immutable document and review artifacts; Gemini is called directly over HTTPS. Extraction, retrieval, storage, and verification sit behind small Python boundaries, which keeps the ordinary test suite deterministic and network-free.
+There is one application container. FastAPI handles the page, API, extraction, retrieval, validation, and orchestration. R2 and Gemini are independent managed services, which gives the project the real service-to-service integration required by the brief without inventing extra internal services.
 
-Objects use this layout:
+R2 objects are stored under these keys:
 
 ```text
 documents/doc_<uuid>/original.<ext>
@@ -37,79 +45,85 @@ documents/doc_<uuid>/extracted.json
 reviews/rev_<uuid>.json
 ```
 
-[The architecture note](docs/architecture.md) follows the full request path.
+See [docs/architecture.md](docs/architecture.md) for the full request path.
 
-## Prerequisites
+## Run it locally
+
+You will need:
 
 - Docker Desktop with the Linux container engine running
-- A Cloudflare R2 bucket and S3 API token
-- A Google AI Studio Gemini API key
+- a Cloudflare R2 bucket and S3 API token
+- a Google AI Studio Gemini API key
 
-At the time of this release, [R2 Standard includes a monthly free tier](https://developers.cloudflare.com/r2/pricing/) and [Gemini 3.5 Flash-Lite has a free tier](https://ai.google.dev/gemini-api/docs/pricing). Provider terms and quotas can change, so check those pages before deploying. Google's free tier may use submitted content to improve its products; do not use sensitive source material without reviewing the current data terms.
+Both external services have free-tier options. Current pricing and terms are available on the [Cloudflare R2 pricing page](https://developers.cloudflare.com/r2/pricing/) and the [Gemini API pricing page](https://ai.google.dev/gemini-api/docs/pricing). Google's free tier may use submitted content to improve its products, so check the current data terms before uploading anything sensitive.
 
-## Configuration
+Copy the example environment file:
 
-Copy `.env.example` to `.env`, replace the three `replace_me` values, and put your R2 account ID in the endpoint. The file is ignored by Git. Do not paste credentials into issues, chat, source files, image build arguments, or command transcripts.
+```powershell
+Copy-Item .env.example .env
+```
 
-| Variable | Purpose | Example/default |
-| --- | --- | --- |
-| `APP_ENV` | Runtime mode | `development` |
-| `LOG_LEVEL` | Application log threshold | `INFO` |
-| `HOST` | Bind address | `0.0.0.0` |
-| `PORT` | Published host port | `8000` |
-| `STORAGE_BACKEND` | Storage implementation; currently R2 only | `r2` |
-| `R2_ENDPOINT` | Account-specific S3 endpoint | `https://<account-id>.r2.cloudflarestorage.com` |
-| `R2_ACCESS_KEY_ID` | R2 API token access key | required |
-| `R2_SECRET_ACCESS_KEY` | R2 API token secret | required |
-| `R2_BUCKET` | Existing bucket name | `claim-verifier` |
-| `VERIFIER_BACKEND` | Verification implementation; currently Gemini only | `gemini` |
-| `GEMINI_API_KEY` | Google AI Studio API key | required |
-| `GEMINI_MODEL` | Model identifier | `gemini-3.5-flash-lite` |
-| `MAX_UPLOAD_MB` | Upload limit, 1–50 MB | `10` |
-| `REQUEST_TIMEOUT_SECONDS` | External request timeout | `20` |
-| `RETRIEVAL_TOP_K` | Passages offered to the verifier | `5` |
-| `CHUNK_SIZE_CHARS` | Target chunk length | `1200` |
-| `CHUNK_OVERLAP_CHARS` | Overlap between chunks | `200` |
-| `MAX_DOCUMENT_PAGES` | PDF page limit | `200` |
-| `MAX_EXTRACTED_CHARS` | Extracted-text limit | `500000` |
-| `PUBLIC_BASE_URL` | Canonical base URL for operators | `http://localhost:8000` |
+Open `.env` and replace the three `replace_me` values. Set `R2_ENDPOINT` with your Cloudflare account ID and change `R2_BUCKET` if your bucket has a different name. `.env` is ignored by Git and must never be committed.
 
-`CHUNK_OVERLAP_CHARS` must be smaller than `CHUNK_SIZE_CHARS`.
-
-## Start
-
-The primary start command is:
+Then start the whole project with one command:
 
 ```powershell
 docker compose up --build
 ```
 
-Open http://localhost:8000 after the `app` service becomes healthy. Upload `samples/sample_report.txt`, choose the suggested claim, run the review, and use the returned review link to confirm the saved result loads again.
+Once the health check passes, open http://localhost:8000. The repository includes `samples/sample_report.txt` and a suggested claim, so the first review can be run without preparing a document.
 
-Stop the stack with `Ctrl+C`, followed by `docker compose down` if it was started in the background.
+Press `Ctrl+C` to stop the foreground process. If Compose was started in the background, use `docker compose down`.
+
+## Environment variables
+
+| Variable | What it controls | Example or default |
+| --- | --- | --- |
+| `APP_ENV` | Runtime environment label | `development` |
+| `LOG_LEVEL` | Application log level | `INFO` |
+| `HOST` | Address Uvicorn binds to | `0.0.0.0` |
+| `PORT` | Published application port | `8000` |
+| `STORAGE_BACKEND` | Storage adapter; R2 is currently supported | `r2` |
+| `R2_ENDPOINT` | Account-specific S3 endpoint | `https://<account-id>.r2.cloudflarestorage.com` |
+| `R2_ACCESS_KEY_ID` | R2 API token access key | required |
+| `R2_SECRET_ACCESS_KEY` | R2 API token secret | required |
+| `R2_BUCKET` | Existing R2 bucket | `claim-verifier` |
+| `VERIFIER_BACKEND` | Model adapter; Gemini is currently supported | `gemini` |
+| `GEMINI_API_KEY` | Google AI Studio API key | required |
+| `GEMINI_MODEL` | Gemini model name | `gemini-3.5-flash-lite` |
+| `MAX_UPLOAD_MB` | Maximum upload size, from 1 to 50 MB | `10` |
+| `REQUEST_TIMEOUT_SECONDS` | Timeout for an external request | `20` |
+| `RETRIEVAL_TOP_K` | Number of passages sent to Gemini | `5` |
+| `CHUNK_SIZE_CHARS` | Target passage length | `1200` |
+| `CHUNK_OVERLAP_CHARS` | Overlap between adjacent passages | `200` |
+| `MAX_DOCUMENT_PAGES` | Maximum number of PDF pages | `200` |
+| `MAX_EXTRACTED_CHARS` | Maximum extracted document length | `500000` |
+| `PUBLIC_BASE_URL` | Base URL shown to operators | `http://localhost:8000` |
+
+`CHUNK_OVERLAP_CHARS` must be smaller than `CHUNK_SIZE_CHARS`.
 
 ## API
 
-| Method | Path | Purpose |
+| Method | Endpoint | Use |
 | --- | --- | --- |
-| `GET` | `/health` | Liveness check; does not spend provider quota |
-| `POST` | `/documents` | Validate, extract, chunk, and store one document |
-| `POST` | `/reviews` | Retrieve evidence, verify a claim, and persist the review |
-| `GET` | `/reviews/{review_id}` | Return a saved review |
-| `GET` | `/docs` | Interactive OpenAPI documentation |
+| `GET` | `/health` | Basic health check; it does not call R2 or Gemini |
+| `POST` | `/documents` | Validate, extract, chunk, and store a document |
+| `POST` | `/reviews` | Find evidence, request a verdict, and save the review |
+| `GET` | `/reviews/{review_id}` | Load a previously saved review |
+| `GET` | `/docs` | OpenAPI documentation |
 
-PowerShell request and response examples are in [docs/api.md](docs/api.md).
+Example PowerShell requests are in [docs/api.md](docs/api.md).
 
-## Verification
+## Tests and release checks
 
-Install [uv](https://docs.astral.sh/uv/), then run the deterministic suite without external credentials:
+The normal test run does not need external credentials:
 
 ```powershell
 uv sync --frozen
 uv run pytest -q
 ```
 
-The credential-free release baseline is **43 passed and 2 skipped**. With the owner-provided integrations enabled, the complete suite is **45 passed**. The two opt-in tests are intentionally skipped in normal CI so a pull request cannot spend provider quota. Run them only after placing real values in your local `.env`:
+The current offline result is **43 passed and 2 skipped**. The skipped tests are the live R2 and Gemini checks, which are opt-in so that routine CI runs cannot consume provider quota. With both integrations enabled, the full result is **45 passed**.
 
 ```powershell
 $env:R2_INTEGRATION = '1'
@@ -119,11 +133,11 @@ $env:GEMINI_INTEGRATION = '1'
 uv run pytest -q tests/integration/test_gemini.py
 ```
 
-The checked-in five-query retrieval corpus scores 5/5 at top 1 and top 3. Across 1,000 local iterations, median retrieval time was 0.1961 ms and p95 was 0.2181 ms. These figures are a regression baseline for the small synthetic corpus, not a general accuracy or latency claim. The real-provider and public-flow evidence is recorded in [docs/external-verification.md](docs/external-verification.md).
+The small checked-in retrieval corpus has five queries. All five rank the expected passage first. Over 1,000 local runs, median retrieval time was 0.1961 ms and p95 was 0.2181 ms. This is a regression check for the included sample data, not a claim about performance on every document.
 
-CI compiles the source, runs the suite and secret scan, validates Compose, builds the image without cache, audits image metadata and layer history, and boots the resulting container through `/health`.
+CI also checks compilation, tests, repository history for secrets, the Compose configuration, a no-cache image build, image metadata and layers, container startup, and `/health`. Real-provider and public-deployment results are recorded in [docs/external-verification.md](docs/external-verification.md).
 
-Useful local checks:
+Additional local checks:
 
 ```powershell
 uv run python scripts/security_audit.py
@@ -132,65 +146,42 @@ uvx pip-audit -r requirements.lock
 docker compose config --quiet
 ```
 
-## Failure behavior
+## Expected failure cases
 
-| Condition | Response |
-| --- | --- |
-| Empty, unsupported, oversized, or unreadable upload | Specific 4xx error; no partial extracted artifact is left behind |
-| Missing document or review | Safe 404 response |
-| R2 not configured | Safe 503 response |
-| R2 unavailable | Safe 502 response |
-| Gemini not configured | Safe 503 response |
-| Gemini timeout | Safe 504 response |
-| Malformed model output or invented evidence ID | Safe 502 response; review is not persisted |
+Bad or oversized uploads return a clear 4xx response. Missing objects return 404. Missing provider configuration returns 503, and provider failures return a safe 502 or 504 depending on the problem. A malformed Gemini response or an evidence ID that was never supplied to the model is rejected and is not saved.
 
-Logs contain request IDs, operation names, status, and duration. They deliberately omit claims, document text, model responses, and credentials.
+Application logs include request IDs, operation names, status codes, and timings. They do not include claims, document text, model responses, or credentials.
 
-## Temporary deployment
+## Opening a temporary public tunnel
 
-With the application running, install `cloudflared` and open a tunnel:
+With the app running locally, install `cloudflared` and start the helper script:
 
 ```powershell
 winget install --id Cloudflare.cloudflared --exact
 .\scripts\start-tunnel.ps1 -Port 8000
 ```
 
-Check the printed URL with:
+Verify the URL printed by Cloudflare:
 
 ```powershell
 uv run python scripts/verify_deployment.py https://your-tunnel.trycloudflare.com
 ```
 
-For an unattended review window, use the same image with a named tunnel or container host and supply secrets at runtime. [docs/deployment.md](docs/deployment.md) covers the operational limits.
+A Quick Tunnel is suitable for a short review window, but not for unattended hosting. A named tunnel or container host is the better choice if the link needs to survive restarts. More detail is in [docs/deployment.md](docs/deployment.md).
 
-## Deliberate limits
+## Known limits
 
-This take-home slice has no authentication, OCR, asynchronous job queue, relational workflow database, semantic/vector retrieval, or webhook. It handles one bounded text document per review flow. Scanned PDFs fail cleanly because OCR is outside the scope.
+The application does not currently include authentication, OCR, malware scanning, background jobs, a relational workflow database, or semantic/vector search. It accepts one bounded source document for each review flow. Scanned PDFs are rejected because they do not contain extractable text.
 
-The first production hardening work would be:
+For production, I would add identity and tenant isolation first, followed by rate limits, malware scanning, retention controls, and a relational audit store. Large-document extraction should move to a background worker. I would only add semantic retrieval after testing it against a representative corpus and showing that BM25 is missing useful evidence.
 
-1. add authentication, authorization, rate limits, and tenant-scoped object keys;
-2. add malware scanning, retention controls, and a relational audit/workflow store; and
-3. move large-document extraction to background jobs, then evaluate hybrid lexical/semantic retrieval on a representative corpus.
+## Notes and supporting documents
 
-## Development without Docker
+- [DESIGN.md](DESIGN.md) explains the main choices, rejected options, AI use, and open tradeoff.
+- [BUILD_NOTES.md](BUILD_NOTES.md) records how the project was built and what changed during testing.
+- [docs/verification.md](docs/verification.md) lists the release checks and their status.
+- [docs/external-verification.md](docs/external-verification.md) records the real R2, Gemini, Docker, and public-flow tests.
+- [docs/release-checklist.md](docs/release-checklist.md) is the final owner and reviewer checklist.
+- [CHANGELOG.md](CHANGELOG.md) summarizes the release.
 
-```powershell
-uv sync --frozen
-uv run python -m app
-```
-
-The health endpoint and static workspace start without provider credentials. Upload and review routes correctly report configuration errors until R2 and Gemini are configured.
-
-If Docker reports that it cannot connect to the engine, start Docker Desktop and wait for the Linux engine before retrying. If `cloudflared` was just installed but is not found, open a new terminal so the updated `PATH` is loaded.
-
-## Project notes
-
-- [DESIGN.md](DESIGN.md) — concise design rationale, cuts, and open tradeoff
-- [BUILD_NOTES.md](BUILD_NOTES.md) — phase-by-phase evidence and AI assistance log
-- [docs/verification.md](docs/verification.md) — release gates and their current status
-- [docs/external-verification.md](docs/external-verification.md) — real R2, Gemini, Docker, and public-flow evidence
-- [docs/release-checklist.md](docs/release-checklist.md) — reviewer and owner checklist
-- [CHANGELOG.md](CHANGELOG.md) — release summary
-
-Licensed under the [GNU General Public License v3.0](LICENSE).
+The project is licensed under the [GNU General Public License v3.0](LICENSE).
