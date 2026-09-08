@@ -20,9 +20,9 @@ Gemini is called directly with HTTPX instead of through LangChain or an agent fr
 
 ## How I used AI
 
-I used Codex to help compare the brief and master plan, sketch the implementation phases, write code and tests, and review the release checks. I treated those suggestions as drafts: every important path was checked with tests or a real provider call before I kept it.
+I gave Codex the technical architecture, request flow, main functions, validation rules, and expected behavior. I split the work into a few phases to keep the development structured, then provided the instructions for each phase after reviewing the previous one. Codex implemented the code and tests from those instructions, while I checked the results before moving forward.
 
-One generated mistake was an `lru_cache` around the R2 dependency constructor. The cache key included a Pydantic `Settings` object, which is not hashable, so the first real request would have failed while resolving the dependency. I caught it before the route tests, removed the cache, and left the small adapter inexpensive to create. Later testing also caught a possible API-key leak in an enhanced pytest traceback, so the key is now unwrapped only where the request header is built.
+One issue I caught was an `lru_cache` around the R2 dependency constructor. It used an unhashable Pydantic `Settings` object as the cache key, so I removed the cache before continuing.
 
 ## What I left out
 
