@@ -76,6 +76,7 @@ Phase 0 added no implementation dependency. Phase 1 introduced the following pin
 | 5 | Codex wired document artifacts, retrieval, verification, evidence resolution, and review persistence into one readable route. | Persist only after every schema and grounding check passes; failed attempts remain in request-scoped logs only. | A saved review is always a valid human-review artifact, never a partial upstream response. |
 | 6 | Codex built the reviewer workspace and its loading, error, result, and saved-review states. | Used plain browser APIs and text-only DOM updates for source and model content; added one feature-detected WebMCP action over the same visible flow. | There is no frontend build chain, and untrusted evidence never enters the page through HTML injection. |
 | 7 | Codex packaged the app as one non-root, health-checked container. | Used an exact Python patch tag and a fully resolved lock export; runtime secrets are supplied only when the container starts. | The image stays small and auditable, while Compose remains the single start command. |
+| 8 | Codex opened and verified a free Cloudflare Quick Tunnel to the local app. | Kept deployment outside the application and documented the URL's temporary nature and lack of SLA. | Public reachability is proven without coupling the code to a host or committing deployment credentials. |
 
 ## Bugs and Corrections
 

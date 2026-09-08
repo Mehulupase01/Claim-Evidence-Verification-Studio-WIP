@@ -20,7 +20,8 @@ This ledger distinguishes deterministic automated checks from credential-depende
 | T1 | Text/PDF extraction and BM25 retrieval | Pass | Real generated two-page PDF preserves page numbers; known evidence ranks first. |
 | F4 | Storage failure | Pass offline | Upload route maps the injected failure to a safe 502 with request ID. |
 | F5-F6 | Timeout and malformed-model failures | Pass offline | Adapter tests raise bounded typed errors without returning provider payloads. |
-| L1-L2 | Public health and happy path | Blocked pending runtime credentials and a live tunnel/host | - |
+| L1 | Public health and workspace | Pass | `https://hose-defendant-correctly-priorities.trycloudflare.com` returned the workspace and `200 {"status":"ok"}` through Cloudflare on 2026-09-08. |
+| L2 | Public happy path | Blocked pending runtime credentials | The tunnel is live; R2 and Gemini credentials are absent from this machine. |
 | D1-D2 | README exactness and design note completeness | Pending | - |
 | U1 | Reviewer workspace assets and security headers | Pass | Root, CSS, JavaScript, sample source, CSP, and untrusted-text rendering assertions pass. |
 | U2 | Desktop/mobile visual handoff | Not run | The available browser-control environment reported that no browser surface was available. |

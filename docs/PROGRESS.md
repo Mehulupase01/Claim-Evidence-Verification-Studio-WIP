@@ -10,6 +10,6 @@
 | 5 - Review persistence | Complete offline; external gate pending | Upload-to-review-to-GET round trips pass for all three verdicts with injected boundaries. Invalid evidence and upstream failures never create review objects. Real R2 plus Gemini E2E awaits credentials. |
 | 6 - Reviewer UI | Complete; browser handoff unavailable | Responsive, accessible plain HTML/CSS/JS workspace, sample flow, loading/error states, grounded evidence rendering, saved-review reload, and CSP are covered by route/asset checks. No browser surface was available for the local visual handoff. |
 | 7 - Docker reproducibility | Implemented; engine gate pending | Exact Python image, fully pinned lock, non-root user, healthcheck, one-service Compose file, and container-contract tests pass. No-cache build is blocked because Docker Desktop's service is stopped and unavailable to this session. |
-| 8 - Live deployment path | Pending | - |
+| 8 - Live deployment path | Public health complete; full E2E pending | Cloudflare Quick Tunnel root and `/health` returned 200 externally. Temporary URL is documented. Public upload/verify/retrieve still requires R2 and Gemini credentials. |
 | 9 - Adversarial verification | Pending | - |
 | 10 - Clean-room release gate | Pending | - |
