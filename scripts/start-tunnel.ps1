@@ -9,7 +9,7 @@ if ($command) {
 } else {
     $installedPath = 'C:\Program Files (x86)\cloudflared\cloudflared.exe'
     if (-not (Test-Path -LiteralPath $installedPath)) {
-        throw 'cloudflared is not installed. Follow docs/deployment.md before starting a tunnel.'
+        throw 'cloudflared is not installed. Follow the tunnel instructions in README.md before starting a tunnel.'
     }
     $executable = $installedPath
 }

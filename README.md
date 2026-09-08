@@ -45,8 +45,6 @@ documents/doc_<uuid>/extracted.json
 reviews/rev_<uuid>.json
 ```
 
-See [docs/architecture.md](docs/architecture.md) for the full request path.
-
 ## Run it locally
 
 You will need:
@@ -112,8 +110,6 @@ Press `Ctrl+C` to stop the foreground process. If Compose was started in the bac
 | `GET` | `/reviews/{review_id}` | Load a previously saved review |
 | `GET` | `/docs` | OpenAPI documentation |
 
-Example PowerShell requests are in [docs/api.md](docs/api.md).
-
 ## Tests and release checks
 
 The normal test run does not need external credentials:
@@ -135,7 +131,7 @@ uv run pytest -q tests/integration/test_gemini.py
 
 The small checked-in retrieval corpus has five queries. All five rank the expected passage first. Over 1,000 local runs, median retrieval time was 0.1961 ms and p95 was 0.2181 ms. This is a regression check for the included sample data, not a claim about performance on every document.
 
-CI also checks compilation, tests, repository history for secrets, the Compose configuration, a no-cache image build, image metadata and layers, container startup, and `/health`. Real-provider and public-deployment results are recorded in [docs/external-verification.md](docs/external-verification.md).
+CI also checks compilation, tests, repository history for secrets, the Compose configuration, a no-cache image build, image metadata and layers, container startup, and `/health`.
 
 Additional local checks:
 
@@ -167,7 +163,7 @@ Verify the URL printed by Cloudflare:
 uv run python scripts/verify_deployment.py https://your-tunnel.trycloudflare.com
 ```
 
-A Quick Tunnel is suitable for a short review window, but not for unattended hosting. A named tunnel or container host is the better choice if the link needs to survive restarts. More detail is in [docs/deployment.md](docs/deployment.md).
+A Quick Tunnel is suitable for a short review window, but not for unattended hosting. A named tunnel or container host is the better choice if the link needs to survive restarts.
 
 ## Known limits
 
@@ -175,13 +171,8 @@ The application does not currently include authentication, OCR, malware scanning
 
 For production, I would add identity and tenant isolation first, followed by rate limits, malware scanning, retention controls, and a relational audit store. Large-document extraction should move to a background worker. I would only add semantic retrieval after testing it against a representative corpus and showing that BM25 is missing useful evidence.
 
-## Notes and supporting documents
+## Design note
 
-- [DESIGN.md](DESIGN.md) explains the main choices, rejected options, AI use, and open tradeoff.
-- [BUILD_NOTES.md](BUILD_NOTES.md) records how the project was built and what changed during testing.
-- [docs/verification.md](docs/verification.md) lists the release checks and their status.
-- [docs/external-verification.md](docs/external-verification.md) records the real R2, Gemini, Docker, and public-flow tests.
-- [docs/release-checklist.md](docs/release-checklist.md) is the final owner and reviewer checklist.
-- [CHANGELOG.md](CHANGELOG.md) summarizes the release.
+[DESIGN.md](DESIGN.md) explains the main choices, rejected options, AI use, production priorities, and open tradeoff.
 
 The project is licensed under the [GNU General Public License v3.0](LICENSE).
