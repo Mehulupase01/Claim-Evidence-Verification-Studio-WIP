@@ -1,7 +1,6 @@
 import json
 import sys
 import time
-from urllib.error import URLError
 from urllib.request import urlopen
 
 
@@ -18,7 +17,7 @@ def main() -> None:
                     print(f"PASS {url} is healthy")
                     return
                 last_error = f"unexpected response {response.status}: {payload}"
-        except (URLError, TimeoutError, ValueError) as exc:
+        except (OSError, ValueError) as exc:
             last_error = type(exc).__name__
         time.sleep(1)
     raise SystemExit(f"Health check failed after 30 seconds: {last_error}")
