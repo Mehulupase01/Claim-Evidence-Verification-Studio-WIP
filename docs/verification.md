@@ -9,7 +9,7 @@ This ledger distinguishes deterministic automated checks from credential-depende
 | S3 | No credentials in tracked history | Pass | Git history pattern scan returned only license prose, with no credential value. |
 | S4 | No credentials in Docker image metadata/layers | Pass | The fresh CI image audit checked Docker configuration, environment, and full layer history. |
 | R1 | Fresh-clone documented start | Pass | A clean GitHub checkout built and started the Compose service; an independent Windows clone installed from `uv.lock`, ran tests, and resolved Compose without an `.env`. |
-| R2 | No-cache image build | Pass in CI and local build | [GitHub Actions run 34174527005](https://github.com/Mehulupase01/Claim-Evidence-Verification-Studio-WIP/actions/runs/34174527005) built without cache, started through Compose, and passed `/health`; the documented local Compose build now passes too. |
+| R2 | No-cache image build | Pass in CI and local build | [GitHub Actions run 34198792268](https://github.com/Mehulupase01/Claim-Evidence-Verification-Studio-WIP/actions/runs/34198792268) built the verified release without cache, started it through Compose, and passed `/health`; the documented local Compose build passes too. |
 | H1 | Local application boot and health | Pass | The Compose container is healthy on port 8000 and returns the typed `200 {"status":"ok"}` response. |
 | I1 | Real R2 round trip | Pass | A uniquely named object was written to `wipstudio`, checked, read byte for byte, and deleted. |
 | I2 | Real Gemini structured-output smoke test | Pass | Gemini 3.5 Flash-Lite returned a schema-valid supported verdict with the supplied evidence ID. |
