@@ -22,7 +22,7 @@ jobs:
       - name: Compile source
         run: python -m compileall -q app scripts tests
       - name: Run deterministic suite
-        run: pytest -q
+        run: python -m pytest -q
       - name: Scan tracked files and history
         run: python scripts/security_audit.py
       - name: Validate container configuration
