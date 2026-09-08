@@ -8,7 +8,7 @@
 | 3 - Extraction and retrieval | Complete | Text and real text-PDF fixtures pass extraction tests; stable chunk IDs, page metadata, BM25 ranking, empty-document rejection, and extracted sidecars are verified. |
 | 4 - Structured LLM verification | Implemented; external gate pending | Gemini adapter uses JSON Schema, header-based credentials, strict Pydantic validation, a bounded timeout, and evidence-ID grounding. Real smoke test awaits a user-owned API key. |
 | 5 - Review persistence | Complete offline; external gate pending | Upload-to-review-to-GET round trips pass for all three verdicts with injected boundaries. Invalid evidence and upstream failures never create review objects. Real R2 plus Gemini E2E awaits credentials. |
-| 6 - Reviewer UI | Pending | - |
+| 6 - Reviewer UI | Complete; browser handoff unavailable | Responsive, accessible plain HTML/CSS/JS workspace, sample flow, loading/error states, grounded evidence rendering, saved-review reload, and CSP are covered by route/asset checks. No browser surface was available for the local visual handoff. |
 | 7 - Docker reproducibility | Pending | - |
 | 8 - Live deployment path | Pending | - |
 | 9 - Adversarial verification | Pending | - |

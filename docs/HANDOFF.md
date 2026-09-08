@@ -2,8 +2,8 @@
 
 ## Current state
 
-The full backend vertical slice is implemented. Offline API tests upload a document, write its original and extracted artifacts, retrieve candidates, run each of the three verdicts through an injected verifier, persist a grounded review, and retrieve identical JSON. Missing objects, corrupt artifacts, timeouts, malformed verifier results, and invented evidence IDs fail safely. Real R2 and Gemini checks remain explicitly pending because this machine has no user-owned credentials.
+The full backend vertical slice and reviewer workspace are implemented. The interface supports a one-click sample, upload and claim entry, visible progress, safe errors with request references, evidence cards, and reload of a saved review. It renders all source and model content with `textContent` and runs under a restrictive Content Security Policy. Automated route and asset checks pass. The environment had no available browser surface for the preview handoff, and the feature-detected WebMCP action could not be exercised here.
 
 ## Next gate
 
-Build the single-page reviewer workspace around the verified API, including loading, success, retrieval, and actionable error states at desktop and mobile widths.
+Containerize the one-service application with a pinned Python image, non-root runtime, healthcheck, runtime-only secrets, and one Docker Compose start command.

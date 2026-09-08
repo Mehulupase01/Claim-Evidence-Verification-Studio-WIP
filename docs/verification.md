@@ -22,3 +22,6 @@ This ledger distinguishes deterministic automated checks from credential-depende
 | F5-F6 | Timeout and malformed-model failures | Pass offline | Adapter tests raise bounded typed errors without returning provider payloads. |
 | L1-L2 | Public health and happy path | Blocked pending runtime credentials and a live tunnel/host | - |
 | D1-D2 | README exactness and design note completeness | Pending | - |
+| U1 | Reviewer workspace assets and security headers | Pass | Root, CSS, JavaScript, sample source, CSP, and untrusted-text rendering assertions pass. |
+| U2 | Desktop/mobile visual handoff | Not run | The available browser-control environment reported that no browser surface was available. |
+| U3 | WebMCP action contract | Implemented; not run | Registration is feature-detected; no supported browser/WebMCP context was available for execution. |

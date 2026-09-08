@@ -1,11 +1,13 @@
 import logging
+from pathlib import Path
 import re
 import time
 import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.documents import router as documents_router
 from app.api.reviews import router as reviews_router
@@ -17,6 +19,8 @@ from app.models import HealthResponse
 
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 logger = logging.getLogger("claim_verifier")
+APP_DIRECTORY = Path(__file__).resolve().parent
+PROJECT_DIRECTORY = APP_DIRECTORY.parent
 
 
 @asynccontextmanager
@@ -37,6 +41,9 @@ def create_app() -> FastAPI:
     )
     application.include_router(documents_router)
     application.include_router(reviews_router)
+    application.mount(
+        "/assets", StaticFiles(directory=APP_DIRECTORY / "static"), name="assets"
+    )
 
     @application.exception_handler(AppError)
     async def app_error_handler(_: Request, exc: AppError):
@@ -78,6 +85,12 @@ def create_app() -> FastAPI:
             response.headers["X-Request-ID"] = request_id
             response.headers["X-Content-Type-Options"] = "nosniff"
             response.headers["Referrer-Policy"] = "no-referrer"
+            response.headers["X-Frame-Options"] = "DENY"
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; script-src 'self'; style-src 'self'; "
+                "img-src 'self' data:; connect-src 'self'; base-uri 'none'; "
+                "form-action 'self'; frame-ancestors 'none'"
+            )
             return response
         finally:
             logger.info(
@@ -96,9 +109,19 @@ def create_app() -> FastAPI:
     async def health() -> HealthResponse:
         return HealthResponse()
 
-    @application.get("/", response_class=HTMLResponse, include_in_schema=False)
-    async def root() -> str:
-        return """<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Claim Evidence Verifier</title></head><body><main><h1>Claim Evidence Verifier</h1><p>The reviewer workspace is being prepared.</p></main></body></html>"""
+    @application.get("/", response_class=FileResponse, include_in_schema=False)
+    async def root() -> FileResponse:
+        return FileResponse(APP_DIRECTORY / "static" / "index.html")
+
+    @application.get(
+        "/samples/sample_report.txt", response_class=FileResponse, include_in_schema=False
+    )
+    async def sample_report() -> FileResponse:
+        return FileResponse(
+            PROJECT_DIRECTORY / "samples" / "sample_report.txt",
+            media_type="text/plain",
+            filename="sample_report.txt",
+        )
 
     return application
 
