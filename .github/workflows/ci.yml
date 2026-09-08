@@ -27,3 +27,14 @@ jobs:
         run: python scripts/security_audit.py
       - name: Validate container configuration
         run: docker compose config --quiet
+      - name: Build a fresh container image
+        run: docker build --no-cache --tag claim-evidence-verifier:ci .
+      - name: Audit image metadata and layers
+        run: python scripts/audit_image.py claim-evidence-verifier:ci
+      - name: Start the container
+        run: docker run --detach --name claim-verifier-ci --publish 8000:8000 claim-evidence-verifier:ci
+      - name: Wait for container health
+        run: python scripts/wait_for_health.py http://127.0.0.1:8000/health
+      - name: Stop the container
+        if: always()
+        run: docker rm --force claim-verifier-ci || true

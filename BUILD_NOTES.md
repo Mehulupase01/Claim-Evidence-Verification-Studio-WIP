@@ -4,15 +4,15 @@
 
 - [ ] Wire at least two independent external services or APIs that actually communicate with the application.
 - [ ] Start reproducibly on a fresh machine using one documented command.
-- [ ] Provide a reviewer-reachable live URL or documented free tunnel path.
-- [ ] Keep the AI-assisted implementation fully understood and explainable.
-- [ ] Keep credentials out of the repository, Git history, image layers, and logs.
-- [ ] Use free tiers and document the cost posture.
-- [ ] Provide exact README run steps, every environment variable, and the live URL status.
-- [ ] Commit a placeholder-only `.env.example` and ignore `.env`.
-- [ ] Deliver a concise design note addressing all five requested prompts.
-- [ ] Demonstrate upload, grounded verdict, evidence display, persistence, and retrieval.
-- [ ] Handle unsupported, oversized, unextractable, missing, storage-failure, malformed-model, and timeout paths safely.
+- [x] Provide a reviewer-reachable live URL or documented free tunnel path.
+- [x] Keep the AI-assisted implementation fully understood and explainable.
+- [ ] Keep credentials out of the repository, Git history, image layers, and logs. Repository, history, and logs pass; the fresh CI image audit is pending.
+- [x] Use free tiers and document the cost posture.
+- [x] Provide exact README run steps, every environment variable, and the live URL status.
+- [x] Commit a placeholder-only `.env.example` and ignore `.env`.
+- [x] Deliver a concise design note addressing all five requested prompts.
+- [x] Demonstrate upload, grounded verdict, evidence display, persistence, and retrieval with offline service boundaries. The real-provider run remains pending.
+- [x] Handle unsupported, oversized, unextractable, missing, storage-failure, malformed-model, and timeout paths safely.
 
 ## Scope
 
@@ -78,6 +78,7 @@ Phase 0 added no implementation dependency. Phase 1 introduced the following pin
 | 7 | Codex packaged the app as one non-root, health-checked container. | Used an exact Python patch tag and a fully resolved lock export; runtime secrets are supplied only when the container starts. | The image stays small and auditable, while Compose remains the single start command. |
 | 8 | Codex opened and verified a free Cloudflare Quick Tunnel to the local app. | Kept deployment outside the application and documented the URL's temporary nature and lack of SLA. | Public reachability is proven without coupling the code to a host or committing deployment credentials. |
 | 9 | Codex audited the failure matrix, added CI, a repository/history secret scanner, and a measured retrieval corpus. | Added rollback for split document writes and upgraded the PDF parser after a live advisory scan. | Release evidence now covers consistency and dependency risk, not only route behavior. |
+| 10 | Codex wrote the reviewer handoff and moved the clean image build into CI. | Kept verified facts separate from owner-dependent R2, Gemini, Docker, and browser gates. | The submission is useful now without overstating what this credential-free environment proved. |
 
 ## Bugs and Corrections
 
